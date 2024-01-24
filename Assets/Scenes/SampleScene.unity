@@ -388,10 +388,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   grid: {fileID: 1414974086}
   visualisationSprite: {fileID: 2015169913}
+  currentRender: {fileID: 1892070725}
   debugPieces:
   - {fileID: 11400000, guid: a574abd125a6d9d44869f6e6077ac1fb, type: 2}
   - {fileID: 11400000, guid: 747af037a30b1ca42b529acefb1b44d1, type: 2}
   - {fileID: 11400000, guid: 83ebafe3876080947acbda26a2e4b2bf, type: 2}
+  - {fileID: 11400000, guid: ba2d1dc72635c074cbe5abd53696f8a2, type: 2}
 --- !u!1 &1414974086
 GameObject:
   m_ObjectHideFlags: 0
@@ -571,7 +573,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &2015169914
 SpriteRenderer:
   m_ObjectHideFlags: 0
