@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BasicSquare
   m_EditorClassIdentifier: 
   Name: Basic Block
-  Icon: {fileID: 21300000, guid: 1eb24fc897366cc4f972a79ddecd5f56, type: 3}
+  Prefab: {fileID: 7660878814427203623, guid: 820aecb72204bfb45b011afc52e26195, type: 3}
   GridSize: {x: 1, y: 1}
   Health: 50
   Cost: 10

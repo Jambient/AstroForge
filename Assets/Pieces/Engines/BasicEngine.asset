@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: BasicEngine
   m_EditorClassIdentifier: 
   Name: Basic Engine
-  Icon: {fileID: 21300000, guid: 6896966243174dd4981821aa8d4dcd83, type: 3}
+  Prefab: {fileID: 7660878814427203623, guid: 716dfcbd86fa07a46b03f748ae7cc284, type: 3}
   GridSize: {x: 1, y: 1}
   Health: 300
   Cost: 50

@@ -4,9 +4,10 @@ using UnityEngine;
 public class Piece : ScriptableObject
 {
     public string Name;
-    public Sprite Icon;
+    public GameObject Prefab;
     public Vector2 GridSize;
     public int Health;
     public int Cost;
     public float Weight;
+    public bool OnlyAllowOne;
 }
