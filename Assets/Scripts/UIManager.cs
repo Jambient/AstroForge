@@ -6,6 +6,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class UIManager : MonoBehaviour
 {
@@ -18,6 +19,9 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Transform settingsPages;
 
     [SerializeField] private RectTransform progressBar;
+
+    [SerializeField] private KeybindsManager keybindsManager;
+    [SerializeField] private GameObject bindingModal;
 
     private string currentScreen = "TitleScreen";
     private int currentSettingsButtonIndex = 0;
@@ -191,5 +195,27 @@ public class UIManager : MonoBehaviour
     public void Exit()
     {
         Application.Quit();
+    }
+
+    private void UpdateKeybinds()
+    {
+        foreach (InputAction actionReference in keybindsManager.playerInput.actions.FindActionMap("Game").actions)
+        {
+            int bindingIndex = actionReference.GetBindingIndex();
+            string keyName = InputControlPath.ToHumanReadableString(actionReference.bindings[bindingIndex].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+
+            //Sprite keybindIcon = Resources.Load<Sprite>($"InputPrompts/Keyboard/White/{keyName}");
+
+            Debug.Log($"{actionReference.name} : {keyName}");
+        }
+    }
+
+    public void RebindKey(string actionName)
+    {
+        bindingModal.SetActive(true);
+        StartCoroutine(keybindsManager.StartRebindingCoroutine(actionName, () => {
+            bindingModal.SetActive(false);
+            UpdateKeybinds();
+        }));
     }
 }
