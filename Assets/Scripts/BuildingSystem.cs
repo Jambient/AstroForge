@@ -4,8 +4,9 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
-struct GridCell
+public struct GridCell
 {
     public Piece pieceData;
     public float rotation;
@@ -166,6 +167,11 @@ public class BuildingSystem : MonoBehaviour
         buildPrice.text = $"BUILD PRICE: <color=#01C8B1>{totalCost} GC";
 
         BuildShip(gridData);
+    }
+
+    public void TestShip()
+    {
+        SceneManager.LoadScene("ShipTestingZone");
     }
     #endregion
 
