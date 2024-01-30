@@ -5,19 +5,6 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 
-//struct GridCell
-//{
-//    public Piece pieceData;
-//    public Vector2 position;
-//    public float rotation;
-
-//    public GridCell(Piece pieceData, Vector2 position, float rotation)
-//    {
-//        this.pieceData = pieceData;
-//        this.position = position;
-//        this.rotation = rotation;
-//    }
-//}
 struct GridCell
 {
     public Piece pieceData;
@@ -86,7 +73,7 @@ public class BuildingSystem : MonoBehaviour
         foreach (Vector2 gridPos in squares)
         {
             //Debug.Log(gridPos);
-            if ((int)gridPos.x < 0 || (int)gridPos.y < 0 || (int)gridPos.x >= gridManager.gridSize.x || (int)gridPos.y >= gridManager.gridSize.y)
+            if (Mathf.Round(gridPos.x) < 0 || Mathf.Round(gridPos.y) < 0 || Mathf.Round(gridPos.x) >= gridManager.gridSize.x || Mathf.Round(gridPos.y) >= gridManager.gridSize.y)
             {
                 return false;
             }
@@ -109,6 +96,33 @@ public class BuildingSystem : MonoBehaviour
         return true;
     }
 
+    private GameObject BuildShip(Dictionary<Vector2, GridCell> data)
+    {
+        GameObject ship = new GameObject();
+        ship.name = "Ship";
+
+        Vector2 topLeftPosition = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        foreach (KeyValuePair<Vector2, GridCell> kvp in gridData)
+        {
+            topLeftPosition.x = Mathf.Min(topLeftPosition.x, kvp.Key.x);
+            topLeftPosition.y = Mathf.Min(topLeftPosition.y, kvp.Key.y);
+        }
+
+        Debug.Log($"Top left position: {topLeftPosition}");
+        foreach (KeyValuePair<Vector2, GridCell> kvp in gridData)
+        {
+            Vector2 newPosition = kvp.Key - topLeftPosition;
+            Vector2 renderPosition = 0.5f * newPosition;
+            renderPosition.y *= -1;
+
+            GameObject shipPiece = Instantiate(kvp.Value.pieceData.Prefab, ship.transform);
+            shipPiece.transform.position = renderPosition;
+            shipPiece.transform.rotation = Quaternion.Euler(0, 0, kvp.Value.rotation);
+        }
+
+        return ship;
+    }
+
     private void RenderGridData()
     {
         // updated method should check which pieces do not need to be rendered/changed
@@ -129,10 +143,9 @@ public class BuildingSystem : MonoBehaviour
             Vector2 spritePosition = gridTopLeft + 0.5f * kvp.Key + new Vector2(0.25f, 0.25f);
             spritePosition.y *= -1;
 
-            GameObject renderPiece = Instantiate(data.pieceData.Prefab);
+            GameObject renderPiece = Instantiate(data.pieceData.Prefab, currentRender.transform);
             renderPiece.transform.position = spritePosition;
             renderPiece.transform.rotation = Quaternion.Euler(0, 0, data.rotation);
-            renderPiece.transform.parent = currentRender.transform;
 
             PieceBase prefabData = data.pieceData.Prefab.GetComponent<PieceBase>();
             foreach (RestrictedPosition restrictionPos in prefabData.restrictedPositions)
@@ -151,6 +164,8 @@ public class BuildingSystem : MonoBehaviour
 
         // update build price
         buildPrice.text = $"BUILD PRICE: <color=#01C8B1>{totalCost} GC";
+
+        BuildShip(gridData);
     }
     #endregion
 
