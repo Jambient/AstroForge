@@ -11,6 +11,12 @@ public class SerializableGrid
     public List<GridCell> values;
 }
 
+public enum Grid
+{
+
+    Sandbox
+}
+
 public class SaveManager : MonoBehaviour
 {
     // Function to convert the dictionary to a serializable format
