@@ -11,7 +11,7 @@ public enum RestrictionType
 [System.Serializable]
 public struct RestrictedPosition
 {
-    public Vector2 relativePosition;
+    public GridPosition relativePosition;
     public RestrictionType restrictionType;
 }
 

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Basic Block
   Prefab: {fileID: 7660878814427203623, guid: 820aecb72204bfb45b011afc52e26195, type: 3}
-  GridSize: {x: 1, y: 1}
   Health: 50
   Cost: 10
-  Weight: 5
+  Mass: 10
+  OnlyAllowOne: 0

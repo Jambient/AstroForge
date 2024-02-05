@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Basic Corner
   Prefab: {fileID: 7660878814427203623, guid: c511e3ff5d0bcf4409e63b540dcabae3, type: 3}
-  GridSize: {x: 1, y: 1}
   Health: 50
   Cost: 10
-  Weight: 5
+  Mass: 10
+  OnlyAllowOne: 0

@@ -14,8 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Ship Core
   Prefab: {fileID: 7660878814427203623, guid: 670fd2db2c5d4df4d9051b5dc9b97fe9, type: 3}
-  GridSize: {x: 1, y: 1}
   Health: 800
   Cost: 0
-  Weight: 50
+  Mass: 100
   OnlyAllowOne: 1

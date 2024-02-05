@@ -1,38 +1,47 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 [System.Serializable]
+public struct ShipData
+{
+    public string name;
+    public SerializableGrid gridData;
+}
+
+[System.Serializable]
 public class SerializableGrid
 {
-    public List<Vector2> keys;
+    public List<GridPosition> keys;
     public List<GridCell> values;
 }
 
-public enum Grid
+public enum BuildMode
 {
-
+    Restricted,
     Sandbox
 }
-
 public class SaveManager : MonoBehaviour
 {
+    public static SaveManager instance { get; private set; }
+
     // Function to convert the dictionary to a serializable format
-    private SerializableGrid ConvertGridToSerializable(Dictionary<Vector2, GridCell> gridData)
+    public SerializableGrid ConvertGridToSerializable(Dictionary<GridPosition, GridCell> gridData)
     {
         SerializableGrid serializableDict = new SerializableGrid();
-        serializableDict.keys = new List<Vector2>(gridData.Keys);
+        serializableDict.keys = new List<GridPosition>(gridData.Keys);
         serializableDict.values = new List<GridCell>(gridData.Values);
 
         return serializableDict;
     }
 
     // Function to convert the serializable data back to a dictionary
-    private Dictionary<Vector2, GridCell> ConvertGridFromSerializable(SerializableGrid serializableGrid)
+    public Dictionary<GridPosition, GridCell> ConvertGridFromSerializable(SerializableGrid serializableGrid)
     {
-        Dictionary<Vector2, GridCell> gridData = new Dictionary<Vector2, GridCell>();
+        Dictionary<GridPosition, GridCell> gridData = new Dictionary<GridPosition, GridCell>();
         for (int i = 0; i < serializableGrid.keys.Count; i++)
         {
             gridData.Add(serializableGrid.keys[i], serializableGrid.values[i]);
@@ -41,43 +50,80 @@ public class SaveManager : MonoBehaviour
         return gridData;
     }
 
-    public void SaveGridData(string filePath, Dictionary<Vector2, GridCell> gridData)
+    public int[] GetAllShipIDs()
     {
-        SerializableGrid serializableGrid = ConvertGridToSerializable(gridData);
-
-        BinaryFormatter formatter = new BinaryFormatter();
-        string path = Application.persistentDataPath + $"Ship/{filePath}.dat";
-
-        using (FileStream stream = new FileStream(path, FileMode.Create))
-        {
-            formatter.Serialize(stream, serializableGrid);
-        }
-
-        Debug.Log("Data saved to: " + path);
+        return Directory.GetFiles(Application.persistentDataPath).Select(path => int.Parse(Path.GetFileName(path))).ToArray();
     }
 
-    public bool LoadGridData(string filePath, out Dictionary<Vector2, GridCell> gridData)
+    public void SaveShipData(int shipID, ShipData shipData)
     {
-        string path = Application.persistentDataPath + $"Ship/{filePath}.dat";
-        gridData = new Dictionary<Vector2, GridCell>();
+        BinaryFormatter formatter = new BinaryFormatter();
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        string filePath = $"{folderPath}{shipID}.dat";
 
-        if (File.Exists(path))
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+
+        using (FileStream stream = new FileStream(filePath, FileMode.Create))
+        {
+            formatter.Serialize(stream, shipData);
+        }
+
+        Debug.Log("Data saved to: " + filePath);
+    }
+
+    public bool LoadShipData(int shipID, out ShipData shipData)
+    {
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        string filePath = $"{folderPath}{shipID}.dat";
+        shipData = new ShipData();
+
+        if (File.Exists(filePath))
         {
             BinaryFormatter formatter = new BinaryFormatter();
 
-            using (FileStream stream = new FileStream(path, FileMode.Open))
+            using (FileStream stream = new FileStream(filePath, FileMode.Open))
             {
-                SerializableGrid serializableDict = (SerializableGrid)formatter.Deserialize(stream);
-                gridData = ConvertGridFromSerializable(serializableDict);
+                shipData = (ShipData)formatter.Deserialize(stream);
             }
 
-            Debug.Log("Data loaded from: " + path);
+            Debug.Log("Data loaded from: " + filePath);
             return true;
         }
         else
         {
-            Debug.LogError("Save file not found at: " + path);
+            Debug.LogError("Save file not found at: " + filePath);
             return false;
+        }
+    }
+
+    public bool DeleteShipData(int shipID)
+    {
+        string path = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/{shipID}.dat";
+
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+            Debug.Log("Data deleted at: " + path);
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning("No data file found at: " + path);
+            return false;
+        }
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(this);
+        } else
+        {
+            instance = this;
         }
     }
 }

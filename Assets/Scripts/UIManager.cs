@@ -181,7 +181,8 @@ public class UIManager : MonoBehaviour
     public void SandboxBuilder()
     {
         if (currentScreen != "MainMenuScreen") { return; }
-        StartCoroutine(LoadSceneAsync("SandboxBuilder"));
+        GlobalsManager.currentBuildMode = BuildMode.Sandbox;
+        StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
     public void Settings()
     {

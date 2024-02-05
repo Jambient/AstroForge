@@ -5,9 +5,8 @@ public class Piece : ScriptableObject
 {
     public string Name;
     public GameObject Prefab;
-    public Vector2 GridSize;
     public int Health;
     public int Cost;
-    public float Weight;
+    public float Mass;
     public bool OnlyAllowOne;
 }

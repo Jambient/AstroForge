@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Name: Basic Engine
   Prefab: {fileID: 7660878814427203623, guid: 716dfcbd86fa07a46b03f748ae7cc284, type: 3}
-  GridSize: {x: 1, y: 1}
   Health: 300
   Cost: 50
-  Weight: 10
-  Thrust: 300
+  Mass: 50
+  OnlyAllowOne: 0
+  Thrust: 100
   EnergyUsage: 100
