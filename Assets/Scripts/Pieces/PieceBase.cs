@@ -18,4 +18,32 @@ public struct RestrictedPosition
 public class PieceBase : MonoBehaviour
 {
     public List<RestrictedPosition> restrictedPositions = new List<RestrictedPosition>();
+    public Piece pieceData;
+
+    private float health;
+    private Renderer pieceRenderer;
+
+    public void DamagePiece(float damageAmount)
+    {
+        health = Mathf.Max(health - damageAmount, 0);
+
+        if (pieceRenderer != null)
+        {
+            float destructionLevel = 1 - (health / pieceData.Health);
+            pieceRenderer.material.SetFloat("_DestructionLevel", destructionLevel);
+        }
+
+        if (health == 0)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        pieceRenderer = GetComponent<Renderer>();
+        pieceRenderer.material.SetFloat("_NoiseSeed", Random.value * 300);
+
+        health = pieceData.Health;
+    }
 }

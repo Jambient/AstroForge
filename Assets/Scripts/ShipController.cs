@@ -49,21 +49,33 @@ public class ShipController : MonoBehaviour
             GameObject shipPiece = Instantiate(pieceData.Prefab, transform);
             shipPiece.transform.position = renderPosition;
             shipPiece.transform.rotation = Quaternion.Euler(0, 0, kvp.Value.rotation);
+        }
+    }
+
+    private void CalculateShipData()
+    {
+        centerOfMass = Vector2.zero;
+        thrusters.Clear();
+        shipMass = 0;
+
+        foreach (GameObject piece in transform)
+        {
+            Vector2 piecePosition = piece.transform.position;
+            var pieceData = piece.GetComponent<PieceBase>().pieceData;
 
             // pre calculate some data
-            Vector2 massPosition = renderPosition * pieceData.Mass;
+            Vector2 massPosition = piecePosition * pieceData.Mass;
             centerOfMass += massPosition;
 
             shipMass += pieceData.Mass;
 
             if (pieceData is Engine)
             {
-                thrusters.Add(new ThrusterData(((Engine)pieceData).Thrust, renderPosition));
+                thrusters.Add(new ThrusterData(((Engine)pieceData).Thrust, piecePosition));
             }
         }
 
         centerOfMass /= shipMass;
-        
         testingCircle.transform.position = centerOfMass;
     }
 
@@ -97,7 +109,6 @@ public class ShipController : MonoBehaviour
             rb.velocity *= 0.95f;
             
         }
-        Debug.Log(rb.velocity);
 
         // move camera
         Vector3 newPosition = Vector3.Lerp(Camera.main.transform.position, gameObject.transform.position, 0.3f);
