@@ -29,6 +29,8 @@ public class Projectile : MonoBehaviour
             PieceBase pieceBase = collision.gameObject.GetComponent<PieceBase>();
             pieceBase.DamagePiece(damage);
 
+            StartCoroutine(VFXManager.Instance.SpawnParticle("Spark", transform.position + transform.right * 0.3f));
+
             Destroy(gameObject);
         }
     }

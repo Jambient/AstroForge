@@ -58,10 +58,10 @@ public class ShipController : MonoBehaviour
         thrusters.Clear();
         shipMass = 0;
 
-        foreach (GameObject piece in transform)
+        foreach (Transform pieceTransform in transform)
         {
-            Vector2 piecePosition = piece.transform.position;
-            var pieceData = piece.GetComponent<PieceBase>().pieceData;
+            Vector2 piecePosition = pieceTransform.localPosition;
+            var pieceData = pieceTransform.GetComponent<PieceBase>().pieceData;
 
             // pre calculate some data
             Vector2 massPosition = piecePosition * pieceData.Mass;
@@ -84,6 +84,7 @@ public class ShipController : MonoBehaviour
         if (SaveManager.instance.LoadShipData(GlobalsManager.currentShipID, out shipData))
         {
             BuildShip(SaveManager.instance.ConvertGridFromSerializable(shipData.gridData));
+            CalculateShipData();
         }
 
         rb = GetComponent<Rigidbody2D>();
@@ -107,7 +108,7 @@ public class ShipController : MonoBehaviour
         if (Input.GetKey(KeyCode.Space))
         {
             rb.velocity *= 0.95f;
-            
+            rb.angularVelocity *= 0.95f;
         }
 
         // move camera
@@ -116,4 +117,6 @@ public class ShipController : MonoBehaviour
 
         Camera.main.transform.position = newPosition;
     }
+
+    
 }

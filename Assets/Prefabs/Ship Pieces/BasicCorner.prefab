@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 9148004721185225189}
   - component: {fileID: 6164013187106692829}
   - component: {fileID: 4376612670028025889}
-  - component: {fileID: 2415762852937568365}
+  - component: {fileID: 6934354566757377242}
   m_Layer: 0
   m_Name: BasicCorner
   m_TagString: Piece
@@ -104,9 +104,8 @@ MonoBehaviour:
       y: 0
     restrictionType: 0
   pieceData: {fileID: 11400000, guid: 83ebafe3876080947acbda26a2e4b2bf, type: 2}
-  health: 0
---- !u!61 &2415762852937568365
-BoxCollider2D:
+--- !u!60 &6934354566757377242
+PolygonCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -147,6 +146,12 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 0.5, y: 0.5}
-  m_EdgeRadius: 0
+  m_Points:
+    m_Paths:
+    - - {x: -0.24, y: -0.22}
+      - {x: -0.24, y: -0.24}
+      - {x: -0.22999999, y: -0.25}
+      - {x: 0.25, y: -0.25}
+      - {x: 0.25, y: 0.24}
+      - {x: 0.22, y: 0.24}
+  m_UseDelaunayMesh: 0
