@@ -42,7 +42,7 @@ public class PieceBase : MonoBehaviour
     private void Start()
     {
         pieceRenderer = GetComponent<Renderer>();
-        pieceRenderer.material.SetFloat("_NoiseSeed", Random.value * 300);
+        pieceRenderer.material.SetFloat("_NoiseSeed", Random.value * 600);
 
         health = pieceData.Health;
     }
