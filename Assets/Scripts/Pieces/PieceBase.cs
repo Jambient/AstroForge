@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum RestrictionType
@@ -23,6 +24,9 @@ public class PieceBase : MonoBehaviour
     private float health;
     private Renderer pieceRenderer;
 
+    protected ShipController shipController;
+    protected Rigidbody2D shipRb;
+
     public void DamagePiece(float damageAmount)
     {
         health = Mathf.Max(health - damageAmount, 0);
@@ -35,15 +39,22 @@ public class PieceBase : MonoBehaviour
 
         if (health == 0)
         {
+            shipController.CalculateShipData();
             Destroy(gameObject);
         }
     }
 
-    private void Start()
+    protected virtual void Start()
     {
         pieceRenderer = GetComponent<Renderer>();
         pieceRenderer.material.SetFloat("_NoiseSeed", Random.value * 600);
 
         health = pieceData.Health;
+
+        if (!GlobalsManager.inBuildMode)
+        {
+            shipController = transform.parent.GetComponent<ShipController>();
+            shipRb = transform.parent.GetComponent<Rigidbody2D>();
+        }
     }
 }

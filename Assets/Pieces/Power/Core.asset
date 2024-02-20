@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Core
   m_EditorClassIdentifier: 
   Name: Ship Core
+  Category: 1
   Prefab: {fileID: 7660878814427203623, guid: 670fd2db2c5d4df4d9051b5dc9b97fe9, type: 3}
   Health: 800
   Cost: 0

@@ -16,9 +16,9 @@ struct ThrusterData
 
 public class ShipController : MonoBehaviour
 {
+    public Vector2 centerOfMass { get; private set; }
     private ShipData shipData;
     private float shipMass;
-    private Vector2 centerOfMass = Vector2.zero;
     private Rigidbody2D rb;
     private List<ThrusterData> thrusters = new List<ThrusterData>();
 
@@ -52,7 +52,7 @@ public class ShipController : MonoBehaviour
         }
     }
 
-    private void CalculateShipData()
+    public void CalculateShipData()
     {
         centerOfMass = Vector2.zero;
         thrusters.Clear();
@@ -69,9 +69,9 @@ public class ShipController : MonoBehaviour
 
             shipMass += pieceData.Mass;
 
-            if (pieceData is Engine)
+            if (pieceData is Thruster)
             {
-                thrusters.Add(new ThrusterData(((Engine)pieceData).Thrust, piecePosition));
+                thrusters.Add(new ThrusterData(((Thruster)pieceData).Thrust, piecePosition));
             }
         }
 
@@ -92,19 +92,6 @@ public class ShipController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (Input.GetKey(KeyCode.W))
-        {
-            foreach (ThrusterData thruster in thrusters)
-            {
-                Vector2 directionToThruster = -(thruster.position - centerOfMass);
-                Vector2 worldDirection = transform.TransformDirection(directionToThruster);
-                rb.AddForceAtPosition(worldDirection.normalized * thruster.thrust * Time.deltaTime, thruster.position);
-
-                float torque = Vector3.Cross(directionToThruster, Vector3.forward).z * thruster.thrust * Time.deltaTime;
-                rb.AddTorque(torque);
-            }
-        }
-
         if (Input.GetKey(KeyCode.Space))
         {
             rb.velocity *= 0.95f;

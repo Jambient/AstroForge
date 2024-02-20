@@ -7,6 +7,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+#region Structures
+
 [System.Serializable]
 public struct GridCell
 {
@@ -70,6 +72,7 @@ public class GridPosition
         }
     }
 }
+#endregion
 
 public class BuildingSystem : MonoBehaviour
 {
@@ -254,6 +257,7 @@ public class BuildingSystem : MonoBehaviour
         shipData.gridData = serializableGrid;
         SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
 
+        GlobalsManager.inBuildMode = false;
         SceneManager.LoadScene("ShipTestingZone");
     }
 
@@ -299,6 +303,8 @@ public class BuildingSystem : MonoBehaviour
     #region Unity Messages
     private void Start()
     {
+        GlobalsManager.inBuildMode = true;
+
         gridCollider = grid.GetComponent<Collider2D>();
         gridManager = grid.GetComponent<GridManager>();
 

@@ -10,10 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 9148004721185225189}
   - component: {fileID: 6164013187106692829}
-  - component: {fileID: -764825412495596872}
-  - component: {fileID: 70590785429730286}
+  - component: {fileID: 723191909727229355}
+  - component: {fileID: 8014116929092307303}
   m_Layer: 0
-  m_Name: BasicEngine
+  m_Name: Gyro
   m_TagString: Piece
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -75,7 +75,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 2
-  m_Sprite: {fileID: 21300000, guid: 2efcf89fd8cb16f4397bf767e67e5893, type: 3}
+  m_Sprite: {fileID: 21300000, guid: ddbd77086fe2171459da10ba63df6501, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -86,30 +86,8 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &-764825412495596872
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7660878814427203623}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5503ac55456cba347ae6e4758bb36e8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  restrictedPositions:
-  - relativePosition:
-      x: 0
-      y: 0
-    restrictionType: 0
-  - relativePosition:
-      x: 0
-      y: 1
-    restrictionType: 1
-  pieceData: {fileID: 11400000, guid: ba2d1dc72635c074cbe5abd53696f8a2, type: 2}
---- !u!60 &70590785429730286
-PolygonCollider2D:
+--- !u!61 &723191909727229355
+BoxCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -150,15 +128,24 @@ PolygonCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Points:
-    m_Paths:
-    - - {x: -0.24, y: 0.25}
-      - {x: -0.25, y: 0.24}
-      - {x: -0.25, y: -0.01}
-      - {x: -0.22999999, y: -0.03}
-      - {x: -0.14999999, y: -0.22999999}
-      - {x: -0.13, y: -0.25}
-      - {x: 0.17, y: -0.25}
-      - {x: 0.25, y: -0.12}
-      - {x: 0.25, y: 0.25}
-  m_UseDelaunayMesh: 0
+  serializedVersion: 2
+  m_Size: {x: 0.5, y: 0.5}
+  m_EdgeRadius: 0
+--- !u!114 &8014116929092307303
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7660878814427203623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70c49b03f1285e347ac44c3e843b027d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  restrictedPositions:
+  - relativePosition:
+      x: 0
+      y: 0
+    restrictionType: 0
+  pieceData: {fileID: 11400000, guid: 6539be6e8fa1c5b419169b09fa19928d, type: 2}
