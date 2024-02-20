@@ -5,6 +5,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 [System.Serializable]
 public struct GridCell
@@ -78,6 +79,8 @@ public class BuildingSystem : MonoBehaviour
     [SerializeField] private GameObject visualisationSprite;
     [SerializeField] private GameObject currentRender;
     [SerializeField] private TextMeshProUGUI buildPrice;
+    [SerializeField] private GameObject shipDataContainer;
+    [SerializeField] private GameObject canvas;
 
     [SerializeField] private GameObject RedZonePrefab;
 
@@ -89,6 +92,11 @@ public class BuildingSystem : MonoBehaviour
     private Color validPlacementColor = new Color(1, 1, 1, 0.5f);
     private Color invalidPlacementColor = new Color(1, 0, 0, 0.7f);
     private ShipData shipData;
+
+    // UI references
+    private GameObject noShipsMessage;
+    private Transform newShipModal;
+    private TMP_InputField shipNameInput;
 
     // temporary
     [SerializeField] private Piece[] debugPieces;
@@ -219,6 +227,26 @@ public class BuildingSystem : MonoBehaviour
         //BuildShip(gridData);
     }
 
+    public void LoadShip(int shipID)
+    {
+        if (SaveManager.instance.LoadShipData(shipID, out shipData))
+        {
+            GlobalsManager.currentShipID = shipID;
+
+            gridData = SaveManager.instance.ConvertGridFromSerializable(shipData.gridData);
+            RenderGridData();
+
+            canvas.transform.Find("ShipLoading").gameObject.SetActive(false);
+        }
+    }
+
+    public void OpenNewShipModal()
+    {
+        newShipModal.gameObject.SetActive(true);
+        shipNameInput.text = "";
+        shipNameInput.Select();
+    }
+
     public void TestShip()
     {
         // save ship
@@ -227,6 +255,44 @@ public class BuildingSystem : MonoBehaviour
         SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
 
         SceneManager.LoadScene("ShipTestingZone");
+    }
+
+    private void DisplaySavedShips()
+    {
+        foreach (Transform child in shipDataContainer.transform.parent)
+        {
+            if (child != shipDataContainer.transform)
+            {
+                Destroy(child.gameObject);
+            }
+        }
+
+        int[] shipIDs = SaveManager.instance.GetAllShipIDs();
+
+        if (shipIDs.Length > 0) {
+            noShipsMessage.SetActive(false);
+
+            foreach (int shipID in shipIDs)
+            {
+                ShipData tempShipData;
+                if (SaveManager.instance.LoadShipData(shipID, out tempShipData))
+                {
+                    GameObject containerClone = Instantiate(shipDataContainer, shipDataContainer.transform.parent);
+                    containerClone.transform.Find("ShipNameText").GetComponent<TextMeshProUGUI>().text = tempShipData.name;
+                    containerClone.transform.GetComponent<Button>().onClick.AddListener(() => {
+                        LoadShip(shipID);
+                    });
+                    containerClone.transform.Find("DeleteButton").GetComponent<Button>().onClick.AddListener(() => {
+                        SaveManager.instance.DeleteShipData(shipID);
+                        DisplaySavedShips();
+                    });
+                    containerClone.SetActive(true);
+                }
+            }
+        } else
+        {
+            noShipsMessage.SetActive(true);
+        }
     }
     #endregion
 
@@ -238,12 +304,33 @@ public class BuildingSystem : MonoBehaviour
 
         SetActivePiece(debugPieces[currentDebugPieceIndex]);
 
-        if (SaveManager.instance.LoadShipData(GlobalsManager.currentShipID, out shipData))
-        {
-            //BuildShip(SaveManager.instance.ConvertGridFromSerializable(shipData.gridData));
-            gridData = SaveManager.instance.ConvertGridFromSerializable(shipData.gridData);
-            RenderGridData();
-        }
+        newShipModal = canvas.transform.Find("NewShipModal");
+
+        Transform shipLoadingScreen = canvas.transform.Find("ShipLoading");
+        noShipsMessage = shipLoadingScreen.Find("NoShipsMessage").gameObject;
+
+        Transform modalContent = newShipModal.Find("ModalContent");
+        shipNameInput = modalContent.GetComponentInChildren<TMP_InputField>();
+
+        DisplaySavedShips();
+
+        // cancelled input
+        shipNameInput.onEndEdit.AddListener(delegate {
+            newShipModal.gameObject.SetActive(false);
+        });
+
+        // submitted input
+        shipNameInput.onSubmit.AddListener(delegate {
+            newShipModal.gameObject.SetActive(false);
+
+            shipData.name = shipNameInput.text;
+            shipData.gridData = SaveManager.instance.ConvertGridToSerializable(new Dictionary<GridPosition, GridCell>());
+            int[] shipIDs = SaveManager.instance.GetAllShipIDs();
+            int newShipID = shipIDs.Length > 0 ? shipIDs.Max() + 1 : 0;
+
+            SaveManager.instance.SaveShipData(newShipID, shipData);
+            DisplaySavedShips();
+        });
     }
 
     private void Update()

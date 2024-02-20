@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
@@ -52,7 +53,12 @@ public class SaveManager : MonoBehaviour
 
     public int[] GetAllShipIDs()
     {
-        return Directory.GetFiles(Application.persistentDataPath).Select(path => int.Parse(Path.GetFileName(path))).ToArray();
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        if (!Directory.Exists(folderPath))
+        {
+            Directory.CreateDirectory(folderPath);
+        }
+        return Directory.GetFiles(folderPath).Select(path => int.Parse(Path.GetFileNameWithoutExtension(path))).ToArray();
     }
 
     public void SaveShipData(int shipID, ShipData shipData)
