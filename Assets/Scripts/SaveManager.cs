@@ -10,6 +10,7 @@ using UnityEngine;
 public struct ShipData
 {
     public string name;
+    public DateTime lastEdited;
     public SerializableGrid gridData;
 }
 
@@ -28,7 +29,7 @@ public struct GameData
     public int researchPoints;
 }
 
-public enum BuildMode
+public enum GameMode
 {
     Restricted,
     Sandbox
@@ -61,7 +62,7 @@ public class SaveManager : MonoBehaviour
 
     public int[] GetAllShipIDs()
     {
-        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/";
         if (!Directory.Exists(folderPath))
         {
             Directory.CreateDirectory(folderPath);
@@ -71,8 +72,10 @@ public class SaveManager : MonoBehaviour
 
     public void SaveShipData(int shipID, ShipData shipData)
     {
+        shipData.lastEdited = DateTime.Now;
+
         BinaryFormatter formatter = new BinaryFormatter();
-        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/";
         string filePath = $"{folderPath}{shipID}.dat";
 
         if (!Directory.Exists(folderPath))
@@ -90,7 +93,7 @@ public class SaveManager : MonoBehaviour
 
     public bool LoadShipData(int shipID, out ShipData shipData)
     {
-        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/";
+        string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/";
         string filePath = $"{folderPath}{shipID}.dat";
         shipData = new ShipData();
 
@@ -151,7 +154,7 @@ public class SaveManager : MonoBehaviour
 
     public bool DeleteShipData(int shipID)
     {
-        string path = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentBuildMode}/{shipID}.dat";
+        string path = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/{shipID}.dat";
 
         if (File.Exists(path))
         {

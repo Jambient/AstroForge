@@ -212,9 +212,10 @@ public class BuildingSystem : MonoBehaviour
         }
 
         // update build price
-        buildPrice.text = $"BUILD PRICE: <color=#01C8B1>{totalCost} GC";
-
-        //BuildShip(gridData);
+        if (GlobalsManager.currentGameMode == GameMode.Restricted)
+        {
+            buildPrice.text = $"BUILD PRICE: <color=#01C8B1>{GlobalsManager.gameData.credits} GC";
+        }
     }
 
     public void LoadShip(int shipID)
@@ -236,6 +237,13 @@ public class BuildingSystem : MonoBehaviour
         newShipModal.gameObject.SetActive(true);
         shipNameInput.text = "";
         shipNameInput.Select();
+    }
+
+    public void ReturnToShipLoadMenu()
+    {
+        SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
+        DisplaySavedShips();
+        canvas.transform.Find("ShipLoading").gameObject.SetActive(true);
     }
 
     public void SwitchBuildingOption(int optionIndex)
@@ -266,6 +274,8 @@ public class BuildingSystem : MonoBehaviour
 
     public void TestShip()
     {
+
+
         // save ship
         SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
         shipData.gridData = serializableGrid;
@@ -297,6 +307,7 @@ public class BuildingSystem : MonoBehaviour
                 {
                     GameObject containerClone = Instantiate(shipDataContainer, shipDataContainer.transform.parent);
                     containerClone.transform.Find("ShipNameText").GetComponent<TextMeshProUGUI>().text = tempShipData.name;
+                    containerClone.transform.Find("LastEditedText").GetComponent<TextMeshProUGUI>().text = $"Last Edited: {tempShipData.lastEdited.ToString("t")} {tempShipData.lastEdited.ToString("d")}";
                     containerClone.transform.GetComponent<Button>().onClick.AddListener(() => {
                         LoadShip(shipID);
                     });
@@ -339,6 +350,8 @@ public class BuildingSystem : MonoBehaviour
 
         hoverInfo = (RectTransform)canvas.transform.Find("HoverInfo");
 
+        buildPrice.gameObject.SetActive(GlobalsManager.currentGameMode == GameMode.Restricted);
+
         DisplaySavedShips();
 
         // cancelled input
@@ -362,6 +375,8 @@ public class BuildingSystem : MonoBehaviour
 
     private void Update()
     {
+        if (PauseManager.instance.isGamePaused) {  return; }
+
         Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 gridPosition = Vector2.zero;
 
@@ -392,9 +407,11 @@ public class BuildingSystem : MonoBehaviour
             }
 
             visualisationSprite.GetComponent<SpriteRenderer>().color = isValid ? validPlacementColor : invalidPlacementColor;
+            visualisationSprite.SetActive(true);
         }
         else
         {
+            visualisationSprite.SetActive(false);
             isValid = false;
         }
 
@@ -416,7 +433,6 @@ public class BuildingSystem : MonoBehaviour
 
                 break;
             case BuildingOption.Build:
-                visualisationSprite.SetActive(true);
                 hoverInfo.gameObject.SetActive(false);
 
                 if (Input.GetKeyDown(KeyCode.E))
@@ -432,6 +448,7 @@ public class BuildingSystem : MonoBehaviour
 
                 if (Input.GetMouseButtonDown(0) && isValid)
                 {
+                    GlobalsManager.gameData.credits -= activePiece.Cost;
                     gridData.Add(new GridPosition(gridPosition), new GridCell(PieceManager.instance.GetIndexFromPiece(activePiece), visualisationSprite.transform.rotation.eulerAngles.z));
                     RenderGridData();
                 }
@@ -439,6 +456,7 @@ public class BuildingSystem : MonoBehaviour
                 {
                     if (gridData.ContainsKey(new GridPosition(gridPosition)))
                     {
+                        GlobalsManager.gameData.credits += activePiece.Cost;
                         gridData.Remove(new GridPosition(gridPosition));
                         RenderGridData();
                     }
@@ -453,6 +471,7 @@ public class BuildingSystem : MonoBehaviour
                 {
                     if (gridData.ContainsKey(new GridPosition(gridPosition)))
                     {
+                        GlobalsManager.gameData.credits += activePiece.Cost;
                         gridData.Remove(new GridPosition(gridPosition));
                         RenderGridData();
                     }

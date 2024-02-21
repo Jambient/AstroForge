@@ -11,43 +11,46 @@ public class ButtonEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     private TextMeshProUGUI buttonText;
     private Color hoverColor = new Color(32 / 255, 32 / 255, 32 / 255);
     private Color normalColor;
+    private bool isHovering;
+    private bool isSelected;
 
     private void Start()
     {
         buttonComponent = GetComponent<Button>();
         buttonText = GetComponentInChildren<TextMeshProUGUI>();
         normalColor = buttonText.color;
+
+        buttonComponent.onClick.AddListener(() =>
+        {
+            isHovering = false;
+            isSelected = false;
+            EventSystem.current.SetSelectedGameObject(null);
+        });
     }
 
-    private void ButtonEnter()
+    private void Update()
     {
         if (!buttonComponent.interactable) { return; }
-        buttonText.color = hoverColor;
-    }
-
-    private void ButtonLeave()
-    {
-        if (!buttonComponent.interactable) { return; }
-        buttonText.color = normalColor;
+        buttonText.color = isHovering || isSelected ? hoverColor : normalColor;
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        ButtonEnter();
+        isHovering = true;
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        ButtonLeave();
+        isHovering = false;
     }
 
     public void OnSelect(BaseEventData eventData)
     {
-        ButtonEnter();
+        isSelected = true;
     }
 
     public void OnDeselect(BaseEventData eventData)
     {
-        ButtonLeave();
+        isSelected = false;
     }
 }

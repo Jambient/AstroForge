@@ -180,7 +180,7 @@ public class UIManager : MonoBehaviour
     {
         if (currentScreen != "MainMenuScreen") { return; }
         SaveManager.instance.LoadGameData(out GlobalsManager.gameData);
-        GlobalsManager.currentBuildMode = BuildMode.Restricted;
+        GlobalsManager.currentGameMode = GameMode.Restricted;
         StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
 
@@ -195,13 +195,13 @@ public class UIManager : MonoBehaviour
 
         SaveManager.instance.SaveGameData(gameData);
         GlobalsManager.gameData = gameData;
-        GlobalsManager.currentBuildMode = BuildMode.Restricted;
+        GlobalsManager.currentGameMode = GameMode.Restricted;
         StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
     public void SandboxBuilder()
     {
         if (currentScreen != "MainMenuScreen") { return; }
-        GlobalsManager.currentBuildMode = BuildMode.Sandbox;
+        GlobalsManager.currentGameMode = GameMode.Sandbox;
         StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
     public void Settings()

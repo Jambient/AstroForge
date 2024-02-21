@@ -54,6 +54,7 @@ public class ShipController : MonoBehaviour
 
     public void CalculateShipData()
     {
+        Debug.Log("updated ship data");
         centerOfMass = Vector2.zero;
         thrusters.Clear();
         shipMass = 0;
