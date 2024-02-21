@@ -13,6 +13,7 @@ public class BasicEnemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (!target) { return; }
         timeSinceLastShot -= Time.deltaTime;
 
         if (timeSinceLastShot <= 0) {

@@ -75,19 +75,21 @@ public class ShipController : MonoBehaviour
             }
         }
 
+        rb.mass = shipMass;
+
         centerOfMass /= shipMass;
         testingCircle.transform.position = centerOfMass;
     }
 
     private void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
+
         if (SaveManager.instance.LoadShipData(GlobalsManager.currentShipID, out shipData))
         {
             BuildShip(SaveManager.instance.ConvertGridFromSerializable(shipData.gridData));
             CalculateShipData();
         }
-
-        rb = GetComponent<Rigidbody2D>();
     }
 
     private void FixedUpdate()

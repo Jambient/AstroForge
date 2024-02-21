@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/ShipTestingZone.unity
     guid: fd268a0af3633744d9bfdc303361f904
+  - enabled: 1
+    path: Assets/Scenes/InGame.unity
+    guid: 5ceff0bd02d3fc54d8212a196ae24994
   m_configObjects: {}

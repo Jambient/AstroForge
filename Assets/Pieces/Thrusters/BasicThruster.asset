@@ -19,5 +19,5 @@ MonoBehaviour:
   Cost: 50
   Mass: 50
   OnlyAllowOne: 0
-  Thrust: 100
+  Thrust: 7000
   EnergyUsage: 100

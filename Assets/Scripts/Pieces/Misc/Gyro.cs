@@ -11,12 +11,10 @@ public class Gyro : PieceBase
 
         if (Input.GetKey(KeyCode.A))
         {
-            Debug.Log("rotating left");
-            shipRb.AddTorque(3);
+            shipRb.AddTorque(1500 * Time.deltaTime);
         } else if (Input.GetKey(KeyCode.D))
         {
-            Debug.Log("rotating right");
-            shipRb.AddTorque(-3);
+            shipRb.AddTorque(-1500 * Time.deltaTime);
         }
     }
 }

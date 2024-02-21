@@ -20,6 +20,14 @@ public class SerializableGrid
     public List<GridCell> values;
 }
 
+[System.Serializable]
+public struct GameData
+{
+    public int currentRound;
+    public int credits;
+    public int researchPoints;
+}
+
 public enum BuildMode
 {
     Restricted,
@@ -93,6 +101,42 @@ public class SaveManager : MonoBehaviour
             using (FileStream stream = new FileStream(filePath, FileMode.Open))
             {
                 shipData = (ShipData)formatter.Deserialize(stream);
+            }
+
+            Debug.Log("Data loaded from: " + filePath);
+            return true;
+        }
+        else
+        {
+            Debug.LogError("Save file not found at: " + filePath);
+            return false;
+        }
+    }
+
+    public void SaveGameData(GameData gameData)
+    {
+        BinaryFormatter formatter = new BinaryFormatter();
+        string filePath = $"{Application.persistentDataPath}/GameSave.dat";
+
+        using (FileStream stream = new FileStream(filePath, FileMode.Create))
+        {
+            formatter.Serialize(stream, gameData);
+        }
+
+        Debug.Log("Game saved to: " + filePath);
+    }
+    public bool LoadGameData(out GameData gameData)
+    {
+        string filePath = $"{Application.persistentDataPath}/GameSave.dat";
+        gameData = new GameData();
+
+        if (File.Exists(filePath))
+        {
+            BinaryFormatter formatter = new BinaryFormatter();
+
+            using (FileStream stream = new FileStream(filePath, FileMode.Open))
+            {
+                gameData = (GameData)formatter.Deserialize(stream);
             }
 
             Debug.Log("Data loaded from: " + filePath);

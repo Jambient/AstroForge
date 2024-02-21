@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     [SerializeField] private List<GameObject> screens = new List<GameObject>();
     [SerializeField] private Image fadeFrame;
     [SerializeField] private RawImage mainMenuBackground;
+    [SerializeField] private GameObject continueGameButton;
 
     [SerializeField] private List<GameObject> settingsButtons = new List<GameObject>();
     [SerializeField] private List<Sprite> settingsButtonSprites = new List<Sprite>();
@@ -118,6 +119,12 @@ public class UIManager : MonoBehaviour
                 OpenSettingsTab(button.name);
             });
         }
+
+        if (SaveManager.instance.LoadGameData(out GameData gameData))
+        {
+            continueGameButton.GetComponent<Button>().interactable = true;
+            continueGameButton.GetComponentInChildren<TextMeshProUGUI>().color = new Color(113f / 255f, 113f / 255f, 113f / 255f);
+        }
     }
 
     private void Update()
@@ -171,12 +178,25 @@ public class UIManager : MonoBehaviour
     // Main Menu Button Functions
     public void ContinueGame()
     {
-        Debug.Log("Not implemented");
+        if (currentScreen != "MainMenuScreen") { return; }
+        SaveManager.instance.LoadGameData(out GlobalsManager.gameData);
+        GlobalsManager.currentBuildMode = BuildMode.Restricted;
+        StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
 
     public void NewGame()
     {
-        Debug.Log("Not implemented");
+        if (currentScreen != "MainMenuScreen") { return; }
+
+        GameData gameData = new GameData();
+        gameData.currentRound = 1;
+        gameData.credits = 4000;
+        gameData.researchPoints = 0;
+
+        SaveManager.instance.SaveGameData(gameData);
+        GlobalsManager.gameData = gameData;
+        GlobalsManager.currentBuildMode = BuildMode.Restricted;
+        StartCoroutine(LoadSceneAsync("ShipBuilding"));
     }
     public void SandboxBuilder()
     {

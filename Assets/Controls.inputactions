@@ -22,7 +22,7 @@
                     "path": "<Keyboard>/escape",
                     "interactions": "",
                     "processors": "",
-                    "groups": "New control scheme",
+                    "groups": "",
                     "action": "Return",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -34,7 +34,7 @@
             "id": "f1ed7576-38a1-4dcd-b035-cd13b96519e8",
             "actions": [
                 {
-                    "name": "InfoMode",
+                    "name": "SelectMode",
                     "type": "Button",
                     "id": "33a381e7-a65e-4eb6-9ba9-7fc5f73001a2",
                     "expectedControlType": "Button",
@@ -43,9 +43,27 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "PlaceMode",
+                    "name": "BuildMode",
                     "type": "Button",
                     "id": "ea68a939-83c5-46e9-98da-dff37c9c1b7e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "DeleteMode",
+                    "type": "Button",
+                    "id": "a1c109af-97e8-4f77-b093-0c30269e4f7f",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Pause",
+                    "type": "Button",
+                    "id": "1a77108d-0b8b-4620-84c3-ca36db12879c",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -59,8 +77,8 @@
                     "path": "<Keyboard>/e",
                     "interactions": "",
                     "processors": "",
-                    "groups": "New control scheme",
-                    "action": "InfoMode",
+                    "groups": "",
+                    "action": "SelectMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -70,19 +88,35 @@
                     "path": "<Keyboard>/r",
                     "interactions": "",
                     "processors": "",
-                    "groups": "New control scheme",
-                    "action": "PlaceMode",
+                    "groups": "",
+                    "action": "BuildMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ef3b0555-895a-424e-a385-525f32cdcfd6",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "DeleteMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b4e25d8a-5b69-4cec-ad93-d63f25662068",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Pause",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
             ]
         }
     ],
-    "controlSchemes": [
-        {
-            "name": "New control scheme",
-            "bindingGroup": "New control scheme",
-            "devices": []
-        }
-    ]
+    "controlSchemes": []
 }

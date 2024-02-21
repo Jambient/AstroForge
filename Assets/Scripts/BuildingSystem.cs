@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,13 @@ public class GridPosition
 }
 #endregion
 
+public enum BuildingOption
+{
+    Select,
+    Build,
+    Delete
+}
+
 public class BuildingSystem : MonoBehaviour
 {
     #region Variables
@@ -95,11 +103,15 @@ public class BuildingSystem : MonoBehaviour
     private Color validPlacementColor = new Color(1, 1, 1, 0.5f);
     private Color invalidPlacementColor = new Color(1, 0, 0, 0.7f);
     private ShipData shipData;
+    private BuildingOption currentBuildOption = BuildingOption.Build;
 
     // UI references
     private GameObject noShipsMessage;
     private Transform newShipModal;
     private TMP_InputField shipNameInput;
+    private Transform buildingOptionButtons;
+    private TextMeshProUGUI buildingOptionSelectedText;
+    private RectTransform hoverInfo;
 
     // temporary
     [SerializeField] private Piece[] debugPieces;
@@ -157,33 +169,6 @@ public class BuildingSystem : MonoBehaviour
         return true;
     }
 
-    private GameObject BuildShip(Dictionary<GridPosition, GridCell> data)
-    {
-        GameObject ship = new GameObject();
-        ship.name = "Ship";
-
-        Vector2 topLeftPosition = new Vector2(Mathf.Infinity, Mathf.Infinity);
-        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
-        {
-            topLeftPosition.x = Mathf.Min(topLeftPosition.x, kvp.Key.x);
-            topLeftPosition.y = Mathf.Min(topLeftPosition.y, kvp.Key.y);
-        }
-
-        Debug.Log($"Top left position: {topLeftPosition}");
-        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
-        {
-            Vector2 newPosition = kvp.Key.ToVector2() - topLeftPosition;
-            Vector2 renderPosition = 0.5f * newPosition;
-            renderPosition.y *= -1;
-
-            GameObject shipPiece = Instantiate(PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex).Prefab, ship.transform);
-            shipPiece.transform.position = renderPosition;
-            shipPiece.transform.rotation = Quaternion.Euler(0, 0, kvp.Value.rotation);
-        }
-
-        return ship;
-    }
-
     private void RenderGridData()
     {
         // updated method should check which pieces do not need to be rendered/changed
@@ -199,10 +184,11 @@ public class BuildingSystem : MonoBehaviour
 
         foreach (KeyValuePair<GridPosition, GridCell> kvp in gridData)
         {
+            float cellSize = 0.5f * grid.transform.localScale.x;
             GridCell data = kvp.Value;
             Piece pieceData = PieceManager.instance.GetPieceFromIndex(data.pieceIndex);
             Vector2 gridTopLeft = (Vector2)grid.transform.position - new Vector2(grid.GetComponent<Renderer>().bounds.size.x / 2, grid.GetComponent<Renderer>().bounds.size.y / 2);
-            Vector2 spritePosition = gridTopLeft + 0.5f * kvp.Key.ToVector2() + new Vector2(0.25f, 0.25f);
+            Vector2 spritePosition = gridTopLeft + cellSize * kvp.Key.ToVector2() + new Vector2(cellSize/2, cellSize/2);
             spritePosition.y *= -1;
 
             GameObject renderPiece = Instantiate(pieceData.Prefab, currentRender.transform);
@@ -216,8 +202,9 @@ public class BuildingSystem : MonoBehaviour
                 {
                     GameObject redZone = Instantiate(RedZonePrefab);
                     Vector2 rotatedPosition = RotateAroundOrigin(restrictionPos.relativePosition.ToVector2(), (360 - data.rotation) * Mathf.Deg2Rad);
-                    redZone.transform.position = spritePosition + 0.5f * new Vector2(rotatedPosition.x, -rotatedPosition.y);
+                    redZone.transform.position = spritePosition + cellSize * new Vector2(rotatedPosition.x, -rotatedPosition.y);
                     redZone.transform.parent = currentRender.transform;
+                    redZone.transform.localScale = Vector3.one;
                 }
             }
 
@@ -240,6 +227,7 @@ public class BuildingSystem : MonoBehaviour
             RenderGridData();
 
             canvas.transform.Find("ShipLoading").gameObject.SetActive(false);
+            canvas.transform.Find("ShipData").GetComponentInChildren<TMP_InputField>().text = shipData.name;
         }
     }
 
@@ -248,6 +236,32 @@ public class BuildingSystem : MonoBehaviour
         newShipModal.gameObject.SetActive(true);
         shipNameInput.text = "";
         shipNameInput.Select();
+    }
+
+    public void SwitchBuildingOption(int optionIndex)
+    {
+        currentBuildOption = (BuildingOption)optionIndex;
+        string buildingOptionName = currentBuildOption.ToString();
+
+        foreach (RectTransform button in buildingOptionButtons)
+        {
+            Image buttonBackground = button.GetComponent<Image>();
+            Image buttonIcon = button.Find("Icon").GetComponent<Image>();
+
+            if (button.gameObject.name == buildingOptionName)
+            {
+                button.DOSizeDelta(new Vector2(80, 80), 0.3f);
+                buttonBackground.DOColor(new Color(1f / 255f, 200f / 255f, 177f / 255f), 0.3f);
+                buttonIcon.DOColor(new Color(1, 1, 1, 1), 0.3f);
+            } else
+            {
+                button.DOSizeDelta(new Vector2(70, 70), 0.3f);
+                buttonBackground.DOColor(new Color(108f / 255f, 108f / 255f, 108f / 255f), 0.3f);
+                buttonIcon.DOColor(new Color(1, 1, 1, 0.3f), 0.3f);
+            }
+        }
+
+        buildingOptionSelectedText.text = $"{buildingOptionName} Mode";
     }
 
     public void TestShip()
@@ -310,6 +324,7 @@ public class BuildingSystem : MonoBehaviour
 
         SetActivePiece(debugPieces[currentDebugPieceIndex]);
 
+        // get ui references
         newShipModal = canvas.transform.Find("NewShipModal");
 
         Transform shipLoadingScreen = canvas.transform.Find("ShipLoading");
@@ -317,6 +332,12 @@ public class BuildingSystem : MonoBehaviour
 
         Transform modalContent = newShipModal.Find("ModalContent");
         shipNameInput = modalContent.GetComponentInChildren<TMP_InputField>();
+
+        Transform modesContainer = canvas.transform.Find("Modes");
+        buildingOptionButtons = modesContainer.Find("Options");
+        buildingOptionSelectedText = modesContainer.Find("SelectedOption").GetComponentInChildren<TextMeshProUGUI>();
+
+        hoverInfo = (RectTransform)canvas.transform.Find("HoverInfo");
 
         DisplaySavedShips();
 
@@ -346,13 +367,13 @@ public class BuildingSystem : MonoBehaviour
 
         if (gridCollider.OverlapPoint(mousePosition))
         {
-            visualisationSprite.SetActive(true);
-            visualisationSprite.transform.position = new Vector3(Mathf.Floor((mousePosition.x + 0.25f) / 0.5f) * 0.5f, Mathf.Floor((mousePosition.y + 0.25f) / 0.5f) * 0.5f, 0);
+            float cellSize = 0.5f * grid.transform.localScale.x;
+            visualisationSprite.transform.position = new Vector3(Mathf.Floor((mousePosition.x + cellSize/2) / cellSize) * cellSize, Mathf.Floor((mousePosition.y + cellSize/2) / cellSize) * cellSize, 0);
 
             Vector2 gridTopLeft = (Vector2)grid.transform.position - new Vector2(grid.GetComponent<Renderer>().bounds.size.x / 2, -(grid.GetComponent<Renderer>().bounds.size.y / 2));
             Vector2 adjustedMousePosition = mousePosition - gridTopLeft;
             adjustedMousePosition.y *= -1;
-            gridPosition = new Vector2(Mathf.Floor(adjustedMousePosition.x / 0.5f), Mathf.Floor(adjustedMousePosition.y / 0.5f));
+            gridPosition = new Vector2(Mathf.Floor(adjustedMousePosition.x / cellSize), Mathf.Floor(adjustedMousePosition.y / cellSize));
 
             // validate the pieces squares
             List<GridPosition> squarePositions = activePiece.Prefab.GetComponent<PieceBase>().restrictedPositions.Select(restriction => new GridPosition(gridPosition + RotateAroundOrigin(restriction.relativePosition.ToVector2(), (360 - visualisationSprite.transform.rotation.eulerAngles.z) * Mathf.Deg2Rad))).ToList();
@@ -374,34 +395,70 @@ public class BuildingSystem : MonoBehaviour
         }
         else
         {
-            visualisationSprite.SetActive(false);
             isValid = false;
         }
 
-        if (Input.GetKeyDown(KeyCode.E))
+        switch (currentBuildOption)
         {
-            currentDebugPieceIndex = ++currentDebugPieceIndex % debugPieces.Length;
-            SetActivePiece(debugPieces[currentDebugPieceIndex]);
-        }
+            case BuildingOption.Select:
+                visualisationSprite.SetActive(false);
+                if (gridData.ContainsKey(new GridPosition(gridPosition)))
+                {
+                    hoverInfo.gameObject.SetActive(true);
+                    Piece hoveredPieceData = PieceManager.instance.GetPieceFromIndex(gridData[new GridPosition(gridPosition)].pieceIndex);
 
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            visualisationSprite.transform.Rotate(Vector3.forward, -90);
-        }
+                    hoverInfo.anchoredPosition = Input.mousePosition;
+                    hoverInfo.GetComponentInChildren<TextMeshProUGUI>().text = hoveredPieceData.Name;
+                } else
+                {
+                    hoverInfo.gameObject.SetActive(false);
+                }
 
-        if (Input.GetMouseButtonDown(0) && isValid)
-        {
-            gridData.Add(new GridPosition(gridPosition), new GridCell(PieceManager.instance.GetIndexFromPiece(activePiece), visualisationSprite.transform.rotation.eulerAngles.z));
-            RenderGridData();
-        }
+                break;
+            case BuildingOption.Build:
+                visualisationSprite.SetActive(true);
+                hoverInfo.gameObject.SetActive(false);
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            if (gridData.ContainsKey(new GridPosition(gridPosition)))
-            {
-                gridData.Remove(new GridPosition(gridPosition));
-                RenderGridData();
-            }
+                if (Input.GetKeyDown(KeyCode.E))
+                {
+                    currentDebugPieceIndex = ++currentDebugPieceIndex % debugPieces.Length;
+                    SetActivePiece(debugPieces[currentDebugPieceIndex]);
+                }
+
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    visualisationSprite.transform.Rotate(Vector3.forward, -90);
+                }
+
+                if (Input.GetMouseButtonDown(0) && isValid)
+                {
+                    gridData.Add(new GridPosition(gridPosition), new GridCell(PieceManager.instance.GetIndexFromPiece(activePiece), visualisationSprite.transform.rotation.eulerAngles.z));
+                    RenderGridData();
+                }
+                if (Input.GetMouseButtonDown(1))
+                {
+                    if (gridData.ContainsKey(new GridPosition(gridPosition)))
+                    {
+                        gridData.Remove(new GridPosition(gridPosition));
+                        RenderGridData();
+                    }
+                }
+
+                break;
+            case BuildingOption.Delete:
+                visualisationSprite.SetActive(false);
+                hoverInfo.gameObject.SetActive(false);
+
+                if (Input.GetMouseButtonDown(0))
+                {
+                    if (gridData.ContainsKey(new GridPosition(gridPosition)))
+                    {
+                        gridData.Remove(new GridPosition(gridPosition));
+                        RenderGridData();
+                    }
+                }
+
+                break;
         }
     }
     #endregion
