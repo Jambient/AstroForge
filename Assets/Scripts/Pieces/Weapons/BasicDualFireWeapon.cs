@@ -29,9 +29,17 @@ public class BasicDualFireWeapon : PieceBase
         Quaternion rotation = Quaternion.Euler(0, 0, transform.localRotation.eulerAngles.z);
         Vector2 rotatedDirection = rotation * localDirection;
 
+        float dotProduct = Vector2.Dot(transform.up, mousePosition - (Vector2)transform.position);
         float angle = Mathf.Atan2(rotatedDirection.y, rotatedDirection.x) * Mathf.Rad2Deg;
         float angleSign = Mathf.Sign(angle);
+
         angle -= 90f * angleSign;
+        
+        if (dotProduct < 0)
+        {
+            angle = angle > 0 ? -90 : 90;
+        }
+
         angle = Mathf.Clamp(angle, -60f, 60f);
 
         Vector2 directionVector = new Vector2(Mathf.Cos((angle + 90f) * Mathf.Deg2Rad), Mathf.Sin((angle + 90f) * Mathf.Deg2Rad));

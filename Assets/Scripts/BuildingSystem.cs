@@ -132,6 +132,7 @@ public class BuildingSystem : MonoBehaviour
     public void SetActivePiece(Piece newPiece)
     {
         activePiece = newPiece;
+        Debug.Log(newPiece);
         visualisationSprite.GetComponent<SpriteRenderer>().sprite = newPiece.Prefab.GetComponent<SpriteRenderer>().sprite;
 
         // reset certain properties

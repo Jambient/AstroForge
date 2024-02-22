@@ -1,17 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-struct ThrusterData
+public class PowerRequest
 {
-    public float thrust;
-    public Vector2 position;
+    public int amount;
 
-    public ThrusterData(float thrust, Vector2 position)
+    public void UsePower()
     {
-        this.thrust = thrust;
-        this.position = position;
+        
     }
 }
 
@@ -23,9 +22,8 @@ public class ShipController : MonoBehaviour
     private ShipData shipData;
     private float shipMass;
     private Rigidbody2D rb;
-    private List<ThrusterData> thrusters = new List<ThrusterData>();
-    private float currentPowerUsage;
     private float totalAvailablePower;
+    private List<PowerRequest> requestedPowerList = new List<PowerRequest>();
 
     [SerializeField] private RectTransform powerUsageBar;
     [SerializeField] private GameObject testingCircle;
@@ -58,28 +56,23 @@ public class ShipController : MonoBehaviour
         }
     }
 
-    public bool AttemptToUsePower(int powerUsage)
+    public PowerRequest RequestPowerUsage(int powerAmount)
     {
-        Debug.Log(currentPowerUsage + " : " + totalAvailablePower);
-        if (totalAvailablePower - currentPowerUsage < powerUsage)
-        {
-            currentPowerUsage = totalAvailablePower;
-            return false;
-        } else
-        {
-            currentPowerUsage += powerUsage;
-            return true;
-        }
+        PowerRequest newPowerRequest = new PowerRequest();
+        newPowerRequest.amount = powerAmount;
+
+        requestedPowerList.Add(newPowerRequest);
+
+        return newPowerRequest;
     }
-    public void StopUsingPower(int powerUsage)
+    public void StopUsingPower(PowerRequest powerRequest)
     {
-        //currentPowerUsage -= powerUsage;
+        requestedPowerList.Remove(powerRequest);
     }
 
     public void CalculateShipData()
     {
         centerOfMass = Vector2.zero;
-        thrusters.Clear();
         shipMass = 0;
         totalAvailablePower = 0;
 
@@ -93,11 +86,6 @@ public class ShipController : MonoBehaviour
             centerOfMass += massPosition;
 
             shipMass += pieceData.Mass;
-
-            if (pieceData is Thruster)
-            {
-                thrusters.Add(new ThrusterData(((Thruster)pieceData).Thrust, piecePosition));
-            }
             if (pieceData is Power)
             {
                 totalAvailablePower += ((Power)pieceData).AvailablePower;
@@ -143,9 +131,20 @@ public class ShipController : MonoBehaviour
         Camera.main.transform.position = newPosition;
     }
 
-    private void Update()
+    private IEnumerator CrashPower()
     {
-        powerUsageBar.anchorMax = new Vector2(1, currentPowerUsage / totalAvailablePower);
+        yield return new WaitForSeconds(3);
     }
 
+    private void Update()
+    {
+        float currentPowerUsage = Mathf.Min(requestedPowerList.Sum(powerRequest => powerRequest.amount), 1);
+        if (currentPowerUsage == 1)
+        {
+
+        }
+
+        Vector2 newBarAnchor = new Vector2(1, currentPowerUsage / totalAvailablePower);
+        powerUsageBar.anchorMax = Vector2.Lerp(powerUsageBar.anchorMax, newBarAnchor, 4 * Time.deltaTime);
+    }
 }

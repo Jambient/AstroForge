@@ -5,6 +5,7 @@ using UnityEngine;
 public class ThrusterBase : PieceBase
 {
     private ParticleSystem thrustParticle;
+    private PowerRequest activePowerRequest;
 
     protected override void Start()
     {
@@ -27,17 +28,26 @@ public class ThrusterBase : PieceBase
 
             shipRb.AddForce(transform.up * ((Thruster)pieceData).Thrust * Time.deltaTime);
 
+            if (activePowerRequest is null)
+            {
+                activePowerRequest = shipController.RequestPowerUsage(60);
+            }
+
             if (!thrustParticle.isPlaying)
             {
                 thrustParticle.Play();
-                shipController.AttemptToUsePower(20);
             }
         } else
         {
+            if (activePowerRequest is not null)
+            {
+                shipController.StopUsingPower(activePowerRequest);
+                activePowerRequest = null;
+            }
+
             if (thrustParticle.isPlaying)
             {
                 thrustParticle.Stop();
-                shipController.StopUsingPower(20);
             }
         }
     }
