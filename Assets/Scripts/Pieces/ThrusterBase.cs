@@ -30,10 +30,15 @@ public class ThrusterBase : PieceBase
             if (!thrustParticle.isPlaying)
             {
                 thrustParticle.Play();
+                shipController.AttemptToUsePower(20);
             }
         } else
         {
-            thrustParticle.Stop();
+            if (thrustParticle.isPlaying)
+            {
+                thrustParticle.Stop();
+                shipController.StopUsingPower(20);
+            }
         }
     }
 }

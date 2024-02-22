@@ -23,13 +23,19 @@ public class PauseManager : MonoBehaviour
     public void ReturnToMenu()
     {
         isGamePaused = false;
-        SaveManager.instance.SaveGameData(GlobalsManager.gameData);
+        if (GlobalsManager.currentGameMode == GameMode.Restricted)
+        {
+            SaveManager.instance.SaveGameData(GlobalsManager.gameData);
+        }
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
     public void Quit()
     {
-        SaveManager.instance.SaveGameData(GlobalsManager.gameData);
+        if (GlobalsManager.currentGameMode == GameMode.Restricted)
+        {
+            SaveManager.instance.SaveGameData(GlobalsManager.gameData);
+        }
         Application.Quit();
     }
     public void OnPause()

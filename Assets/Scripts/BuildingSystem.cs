@@ -105,6 +105,8 @@ public class BuildingSystem : MonoBehaviour
     private ShipData shipData;
     private BuildingOption currentBuildOption = BuildingOption.Build;
 
+    private GridPosition[] directions = { new GridPosition(0, -1), new GridPosition(0, 1), new GridPosition(-1, 0), new GridPosition(1, 0) };
+
     // UI references
     private GameObject noShipsMessage;
     private Transform newShipModal;
@@ -241,6 +243,8 @@ public class BuildingSystem : MonoBehaviour
 
     public void ReturnToShipLoadMenu()
     {
+        SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
+        shipData.gridData = serializableGrid;
         SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
         DisplaySavedShips();
         canvas.transform.Find("ShipLoading").gameObject.SetActive(true);
@@ -272,9 +276,33 @@ public class BuildingSystem : MonoBehaviour
         buildingOptionSelectedText.text = $"{buildingOptionName} Mode";
     }
 
-    public void TestShip()
+    private int FloodFillCountCells(GridPosition currentPosition, List<GridPosition> visited = null)
     {
+        visited ??= new List<GridPosition>();
+        visited.Add(currentPosition);
 
+        int cellCount = 1;
+        foreach (GridPosition direction in directions)
+        {
+            GridPosition newGridPos = currentPosition + direction;
+            if (newGridPos.x >= 0 && newGridPos.y >= 0 && newGridPos.x < gridManager.gridSize.x && newGridPos.y < gridManager.gridSize.y)
+            {
+                if (gridData.ContainsKey(newGridPos) && !visited.Contains(newGridPos))
+                {
+                    cellCount += FloodFillCountCells(newGridPos, visited);
+                }
+            }
+        }
+        return cellCount;
+    }
+
+    public void LaunchShip()
+    {
+        if (gridData.Count != FloodFillCountCells(gridData.First().Key))
+        {
+            Debug.Log("not all pieces are connected");
+            return;
+        }
 
         // save ship
         SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);

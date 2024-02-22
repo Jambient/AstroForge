@@ -6,6 +6,7 @@ public class Projectile : MonoBehaviour
 {
     public float damage;
     public float speed;
+    public GameObject ignorePiece;
 
     private float currentLifetime = 0;
     private float maxLifetime = 10;
@@ -23,10 +24,13 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag("Piece"))
+        if (collision.gameObject.CompareTag("Piece") && collision.gameObject != ignorePiece)
         {
-            PieceBase pieceBase = collision.gameObject.GetComponent<PieceBase>();
-            pieceBase.DamagePiece(damage);
+            if (collision.gameObject.transform.parent != ShipController.ship)
+            {
+                PieceBase pieceBase = collision.gameObject.GetComponent<PieceBase>();
+                pieceBase.DamagePiece(damage);
+            }
 
             StartCoroutine(VFXManager.Instance.SpawnParticle("Spark", transform.position + transform.right * 0.3f));
 

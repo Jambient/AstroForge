@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 struct ThrusterData
 {
@@ -16,12 +17,17 @@ struct ThrusterData
 
 public class ShipController : MonoBehaviour
 {
+    public static Transform ship { get; private set; }
+
     public Vector2 centerOfMass { get; private set; }
     private ShipData shipData;
     private float shipMass;
     private Rigidbody2D rb;
     private List<ThrusterData> thrusters = new List<ThrusterData>();
+    private float currentPowerUsage;
+    private float totalAvailablePower;
 
+    [SerializeField] private RectTransform powerUsageBar;
     [SerializeField] private GameObject testingCircle;
 
     private void BuildShip(Dictionary<GridPosition, GridCell> data)
@@ -52,12 +58,30 @@ public class ShipController : MonoBehaviour
         }
     }
 
+    public bool AttemptToUsePower(int powerUsage)
+    {
+        Debug.Log(currentPowerUsage + " : " + totalAvailablePower);
+        if (totalAvailablePower - currentPowerUsage < powerUsage)
+        {
+            currentPowerUsage = totalAvailablePower;
+            return false;
+        } else
+        {
+            currentPowerUsage += powerUsage;
+            return true;
+        }
+    }
+    public void StopUsingPower(int powerUsage)
+    {
+        //currentPowerUsage -= powerUsage;
+    }
+
     public void CalculateShipData()
     {
-        Debug.Log("updated ship data");
         centerOfMass = Vector2.zero;
         thrusters.Clear();
         shipMass = 0;
+        totalAvailablePower = 0;
 
         foreach (Transform pieceTransform in transform)
         {
@@ -74,6 +98,10 @@ public class ShipController : MonoBehaviour
             {
                 thrusters.Add(new ThrusterData(((Thruster)pieceData).Thrust, piecePosition));
             }
+            if (pieceData is Power)
+            {
+                totalAvailablePower += ((Power)pieceData).AvailablePower;
+            }
         }
 
         rb.mass = shipMass;
@@ -82,9 +110,16 @@ public class ShipController : MonoBehaviour
         testingCircle.transform.position = centerOfMass;
     }
 
+    // ui stuff
+    public void ReturnToHanger()
+    {
+        SceneManager.LoadScene("ShipBuilding");
+    }
+
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        ship = transform;
 
         if (SaveManager.instance.LoadShipData(GlobalsManager.currentShipID, out shipData))
         {
@@ -97,7 +132,7 @@ public class ShipController : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            rb.velocity *= 0.95f;
+            rb.velocity -= rb.velocity * 0.02f;
             rb.angularVelocity *= 0.95f;
         }
 
@@ -108,5 +143,9 @@ public class ShipController : MonoBehaviour
         Camera.main.transform.position = newPosition;
     }
 
-    
+    private void Update()
+    {
+        powerUsageBar.anchorMax = new Vector2(1, currentPowerUsage / totalAvailablePower);
+    }
+
 }

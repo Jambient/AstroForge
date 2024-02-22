@@ -9,7 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53dc11b7985218c43a7b0a19826f978d, type: 3}
+  m_Script: {fileID: 11500000, guid: 4183afaa1fba35b4abacda2ee4835d2b, type: 3}
   m_Name: Core
   m_EditorClassIdentifier: 
   Name: Ship Core
@@ -19,3 +19,4 @@ MonoBehaviour:
   Cost: 0
   Mass: 100
   OnlyAllowOne: 1
+  AvailablePower: 100
