@@ -12,7 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53dc11b7985218c43a7b0a19826f978d, type: 3}
   m_Name: Gyro
   m_EditorClassIdentifier: 
-  Name: Gyro
+  DisplayName: Gyroscopic Rotator
+  Description: Allows for rotation of the ship.
+  PreviewImage: {fileID: 21300000, guid: ddbd77086fe2171459da10ba63df6501, type: 3}
   Category: 0
   Prefab: {fileID: 7660878814427203623, guid: 6074ad1069100684386eafc14885bf1f, type: 3}
   Health: 100

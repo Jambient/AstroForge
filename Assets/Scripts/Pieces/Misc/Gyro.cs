@@ -4,11 +4,8 @@ using UnityEngine;
 
 public class Gyro : PieceBase
 {
-
-    private void FixedUpdate()
+    protected override void InGameFixedUpdate()
     {
-        if (GlobalsManager.inBuildMode) { return; }
-
         if (Input.GetKey(KeyCode.A))
         {
             shipRb.AddTorque(1500 * Time.deltaTime);

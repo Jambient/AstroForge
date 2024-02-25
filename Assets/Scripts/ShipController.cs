@@ -1,22 +1,32 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PowerRequest
 {
-    public int amount;
+    public float amount;
+    public bool isUsingPower = false;
 
-    public void UsePower()
+    public bool AttemptToUsePower()
     {
-        
+        isUsingPower = true && ShipController.isPowerEnabled;
+        return isUsingPower;
+    }
+
+    public void ReleasePower()
+    {
+        isUsingPower = false;
     }
 }
 
 public class ShipController : MonoBehaviour
 {
     public static Transform ship { get; private set; }
+    public static bool isPowerEnabled = true;
+    public static Transform core;
 
     public Vector2 centerOfMass { get; private set; }
     private ShipData shipData;
@@ -25,38 +35,7 @@ public class ShipController : MonoBehaviour
     private float totalAvailablePower;
     private List<PowerRequest> requestedPowerList = new List<PowerRequest>();
 
-    [SerializeField] private RectTransform powerUsageBar;
-    [SerializeField] private GameObject testingCircle;
-
-    private void BuildShip(Dictionary<GridPosition, GridCell> data)
-    {
-        Vector2 topLeftPosition = new Vector2(Mathf.Infinity, Mathf.Infinity);
-        Vector2 topRightPosition = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
-        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
-        {
-            topLeftPosition.x = Mathf.Min(topLeftPosition.x, kvp.Key.x);
-            topLeftPosition.y = Mathf.Min(topLeftPosition.y, kvp.Key.y);
-            topRightPosition.x = Mathf.Max(topRightPosition.x, kvp.Key.x);
-            topRightPosition.y = Mathf.Max(topRightPosition.y, kvp.Key.y);
-        }
-        Vector2 centerPosition = (topLeftPosition + topRightPosition) / 2;
-
-        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
-        {
-            Vector2 newPosition = kvp.Key.ToVector2() - centerPosition;
-            Vector2 renderPosition = 0.5f * newPosition;
-            renderPosition.y *= -1;
-
-            var pieceData = PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex);
-
-            // add the piece prefab to the current ship build
-            GameObject shipPiece = Instantiate(pieceData.Prefab, transform);
-            shipPiece.transform.position = renderPosition;
-            shipPiece.transform.rotation = Quaternion.Euler(0, 0, kvp.Value.rotation);
-        }
-    }
-
-    public PowerRequest RequestPowerUsage(int powerAmount)
+    public PowerRequest RequestPowerUsage(float powerAmount)
     {
         PowerRequest newPowerRequest = new PowerRequest();
         newPowerRequest.amount = powerAmount;
@@ -89,19 +68,56 @@ public class ShipController : MonoBehaviour
             if (pieceData is Power)
             {
                 totalAvailablePower += ((Power)pieceData).AvailablePower;
+                if (pieceData.DisplayName == "Ship Core")
+                {
+                    core = pieceTransform;
+                }
             }
         }
 
         rb.mass = shipMass;
 
         centerOfMass /= shipMass;
-        testingCircle.transform.position = centerOfMass;
     }
 
-    // ui stuff
-    public void ReturnToHanger()
+    public float GetCoreHealthPercentage()
     {
-        SceneManager.LoadScene("ShipBuilding");
+        if (core)
+        {
+            PieceBase pieceBase = core.GetComponent<PieceBase>();
+            return pieceBase.health / pieceBase.pieceData.Health;
+        } else
+        {
+            return 0;
+        }
+    }
+
+    private void BuildShip(Dictionary<GridPosition, GridCell> data)
+    {
+        Vector2 topLeftPosition = new Vector2(Mathf.Infinity, Mathf.Infinity);
+        Vector2 topRightPosition = new Vector2(-Mathf.Infinity, -Mathf.Infinity);
+        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
+        {
+            topLeftPosition.x = Mathf.Min(topLeftPosition.x, kvp.Key.x);
+            topLeftPosition.y = Mathf.Min(topLeftPosition.y, kvp.Key.y);
+            topRightPosition.x = Mathf.Max(topRightPosition.x, kvp.Key.x);
+            topRightPosition.y = Mathf.Max(topRightPosition.y, kvp.Key.y);
+        }
+        Vector2 centerPosition = (topLeftPosition + topRightPosition) / 2;
+
+        foreach (KeyValuePair<GridPosition, GridCell> kvp in data)
+        {
+            Vector2 newPosition = kvp.Key.ToVector2() - centerPosition;
+            Vector2 renderPosition = 0.5f * newPosition;
+            renderPosition.y *= -1;
+
+            var pieceData = PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex);
+
+            // add the piece prefab to the current ship build
+            GameObject shipPiece = Instantiate(pieceData.Prefab, transform);
+            shipPiece.transform.position = renderPosition;
+            shipPiece.transform.rotation = Quaternion.Euler(0, 0, kvp.Value.rotation);
+        }
     }
 
     private void Start()
@@ -133,18 +149,23 @@ public class ShipController : MonoBehaviour
 
     private IEnumerator CrashPower()
     {
+        isPowerEnabled = false;
+        requestedPowerList.ForEach(powerRequest => { powerRequest.ReleasePower(); });
         yield return new WaitForSeconds(3);
+        isPowerEnabled = true;
     }
 
     private void Update()
     {
-        float currentPowerUsage = Mathf.Min(requestedPowerList.Sum(powerRequest => powerRequest.amount), 1);
-        if (currentPowerUsage == 1)
+        float currentPowerUsage = isPowerEnabled ? Mathf.Min(requestedPowerList.Sum(powerRequest => powerRequest.isUsingPower ? powerRequest.amount : 0), totalAvailablePower) : 0;
+
+        HUDManager.instance.UpdatePowerUsageStat(currentPowerUsage / totalAvailablePower, UpdateMode.Smooth);
+        HUDManager.instance.UpdateCoreHealthStat(GetCoreHealthPercentage(), UpdateMode.Smooth);
+
+        if (currentPowerUsage == totalAvailablePower)
         {
-
+            HUDManager.instance.UpdatePowerUsageStat(1, UpdateMode.Immediate);
+            StartCoroutine(CrashPower());
         }
-
-        Vector2 newBarAnchor = new Vector2(1, currentPowerUsage / totalAvailablePower);
-        powerUsageBar.anchorMax = Vector2.Lerp(powerUsageBar.anchorMax, newBarAnchor, 4 * Time.deltaTime);
     }
 }

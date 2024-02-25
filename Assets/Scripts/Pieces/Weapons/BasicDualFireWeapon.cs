@@ -6,21 +6,32 @@ using static UnityEngine.GraphicsBuffer;
 
 public class BasicDualFireWeapon : PieceBase
 {
-    [SerializeField] private GameObject projectilePrefab;
-
     private Transform barrels;
     private float lastShot;
     private int projectileSide = 1;
+    private PowerRequest powerRequest;
+    private Weapon weaponData;
+    private float overHeatIncrease;
+    private float currentOverHeatAmount;
+    private float cooldownTimeLeft;
 
-    protected override void Start()
+    private IEnumerator DelayPowerRelease(float delay)
     {
-        base.Start();
-        barrels = transform.Find("Barrels");
+        yield return new WaitForSeconds(delay);
+        powerRequest.ReleasePower();
     }
 
-    void Update()
+    protected override void InGameStart()
     {
-        if (GlobalsManager.inBuildMode) { return; }
+        barrels = transform.Find("Barrels");
+        weaponData = (Weapon)pieceData;
+        powerRequest = shipController.RequestPowerUsage(weaponData.EnergyUsage);
+        overHeatIncrease = 1 / weaponData.ContinuousShotsTillCooldown;
+    }
+
+    protected override void InGameUpdate()
+    {
+        if (barrels is null || powerRequest is null) { return; }
 
         Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 localMousePosition = transform.parent.InverseTransformPoint(mousePosition);
@@ -45,16 +56,30 @@ public class BasicDualFireWeapon : PieceBase
         Vector2 directionVector = new Vector2(Mathf.Cos((angle + 90f) * Mathf.Deg2Rad), Mathf.Sin((angle + 90f) * Mathf.Deg2Rad));
         barrels.SetLocalPositionAndRotation(new Vector2(0, -0.05f) + directionVector * 0.05f, Quaternion.Euler(0, 0, angle));
 
-        if (Input.GetMouseButton(0) && lastShot <= 0)
+        if (Input.GetMouseButton(0) && lastShot <= 0 && powerRequest.AttemptToUsePower() && cooldownTimeLeft <= 0)
         {
-            lastShot = ((Weapon)pieceData).FireRate;
+            lastShot = weaponData.FireRate;
+            currentOverHeatAmount += overHeatIncrease;
             projectileSide *= -1;
 
-            Quaternion projectileRotation = Quaternion.FromToRotation(projectilePrefab.transform.right, transform.localToWorldMatrix * directionVector);
-            Projectile projectile = Instantiate(projectilePrefab, transform.position + barrels.up * 0.2f + barrels.right * projectileSide * 0.08f, projectileRotation).GetComponent<Projectile>();
+            Quaternion projectileRotation = Quaternion.FromToRotation(weaponData.ProjectilePrefab.transform.right, transform.localToWorldMatrix * directionVector);
+            Projectile projectile = Instantiate(weaponData.ProjectilePrefab, transform.position + barrels.up * 0.2f + barrels.right * projectileSide * 0.08f, projectileRotation).GetComponent<Projectile>();
             projectile.ignorePiece = gameObject;
+            projectile.originTransform = ShipController.ship;
+
+            StartCoroutine(DelayPowerRelease(lastShot * 0.8f));
+
+            if (currentOverHeatAmount >= 1)
+            {
+                currentOverHeatAmount = 0;
+                cooldownTimeLeft = weaponData.CooldownTime;
+            }
+        } else if (lastShot <= 0)
+        {
+            currentOverHeatAmount = Mathf.Max(currentOverHeatAmount - Time.deltaTime, 0);
         }
 
         lastShot -= Time.deltaTime;
+        cooldownTimeLeft -= Time.deltaTime;
     }
 }

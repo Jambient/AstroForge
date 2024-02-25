@@ -191,7 +191,7 @@ public class UIManager : MonoBehaviour
 
         GameData gameData = new GameData();
         gameData.currentRound = 1;
-        gameData.credits = 4000;
+        gameData.credits = 1000;
         gameData.researchPoints = 0;
 
         GlobalsManager.gameData = gameData;

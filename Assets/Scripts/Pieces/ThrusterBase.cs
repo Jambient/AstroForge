@@ -5,19 +5,17 @@ using UnityEngine;
 public class ThrusterBase : PieceBase
 {
     private ParticleSystem thrustParticle;
-    private PowerRequest activePowerRequest;
+    private PowerRequest powerRequest;
 
-    protected override void Start()
+    protected override void InGameStart()
     {
-        base.Start();
         thrustParticle = GetComponentInChildren<ParticleSystem>();
+        powerRequest = shipController.RequestPowerUsage(20);
     }
 
-    private void FixedUpdate()
+    protected override void InGameFixedUpdate()
     {
-        if (GlobalsManager.inBuildMode) { return; }
-
-        if (Input.GetKey(KeyCode.W))
+        if (Input.GetKey(KeyCode.W) && powerRequest.AttemptToUsePower())
         {
             //Vector2 directionToThruster = -((Vector2)transform.localPosition - shipController.centerOfMass);
             //Vector2 worldDirection = transform.TransformDirection(directionToThruster);
@@ -28,23 +26,13 @@ public class ThrusterBase : PieceBase
 
             shipRb.AddForce(transform.up * ((Thruster)pieceData).Thrust * Time.deltaTime);
 
-            if (activePowerRequest is null)
-            {
-                activePowerRequest = shipController.RequestPowerUsage(60);
-            }
-
             if (!thrustParticle.isPlaying)
             {
                 thrustParticle.Play();
             }
         } else
         {
-            if (activePowerRequest is not null)
-            {
-                shipController.StopUsingPower(activePowerRequest);
-                activePowerRequest = null;
-            }
-
+            powerRequest.ReleasePower();
             if (thrustParticle.isPlaying)
             {
                 thrustParticle.Stop();

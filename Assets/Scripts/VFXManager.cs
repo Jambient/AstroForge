@@ -4,31 +4,34 @@ using UnityEngine;
 
 public class VFXManager : MonoBehaviour
 {
-    private static VFXManager _instance;
-    public static VFXManager Instance { get { return _instance; } }
+    public static VFXManager instance { get; private set; }
 
-    private void Awake()
+    public void SpawnParticle(string particleName, Vector2 position)
     {
-        if (_instance != null && _instance != this)
-        {
-            Destroy(this.gameObject);
-        }
-        else
-        {
-            _instance = this;
-        }
+        StartCoroutine(SpawnParticleCoroutine(particleName, position));
     }
-
-    public IEnumerator SpawnParticle(string particleName, Vector2 position)
+    private IEnumerator SpawnParticleCoroutine(string particleName, Vector2 position)
     {
         GameObject particle = Instantiate(Resources.Load<GameObject>($"Particles/{particleName}"));
         particle.transform.position = position;
 
-        while (particle.GetComponent<ParticleSystem>().isPlaying)
-        {
-            yield return null;
-        }
+        ParticleSystem particleSystem = particle.GetComponent<ParticleSystem>();
+        particleSystem.Play();
 
-        //Destroy(particle);
+        yield return new WaitForSeconds(particleSystem.main.duration + particleSystem.main.startLifetime.constant);
+
+        Destroy(particle);
+    }
+
+    private void Awake()
+    {
+        if (instance != null && instance != this)
+        {
+            Destroy(this);
+        }
+        else
+        {
+            instance = this;
+        }
     }
 }

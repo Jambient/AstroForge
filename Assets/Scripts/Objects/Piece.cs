@@ -2,19 +2,21 @@ using UnityEngine;
 
 public enum PieceCategory
 {
-    Block,
+    Blocks,
     Power,
-    Weapon,
-    Thruster,
+    Weapons,
+    Thrusters,
 }
 
 [CreateAssetMenu(fileName = "Data", menuName = "ScriptableObjects/Piece", order = 1)]
 public class Piece : ScriptableObject
 {
-    public string Name;
+    public string DisplayName;
+    public string Description;
+    public Sprite PreviewImage;
     public PieceCategory Category;
     public GameObject Prefab;
-    public int Health;
+    public float Health;
     public int Cost;
     public float Mass;
     public bool OnlyAllowOne;

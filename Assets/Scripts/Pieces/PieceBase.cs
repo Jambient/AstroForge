@@ -16,25 +16,30 @@ public struct RestrictedPosition
     public RestrictionType restrictionType;
 }
 
-public class PieceBase : MonoBehaviour
+public interface IDamagable
+{
+    public void OnDamage(float damage);
+}
+
+public class PieceBase : MonoBehaviour, IDamagable
 {
     public List<RestrictedPosition> restrictedPositions = new List<RestrictedPosition>();
     public Piece pieceData;
 
-    private float health;
+    public float health { get; private set; }
     private Renderer pieceRenderer;
 
     protected ShipController shipController;
     protected Rigidbody2D shipRb;
 
-    public void DamagePiece(float damageAmount)
+    public void OnDamage(float damage)
     {
-        health = Mathf.Max(health - damageAmount, 0);
+        health = Mathf.Max(health - damage, 0);
 
         if (pieceRenderer != null)
         {
             float destructionLevel = 1 - (health / pieceData.Health);
-            pieceRenderer.material.SetFloat("_DestructionLevel", destructionLevel);
+            pieceRenderer.material.SetFloat("_DestructionLevel", destructionLevel*0.65f);
         }
 
         if (health == 0)
@@ -43,6 +48,10 @@ public class PieceBase : MonoBehaviour
             Destroy(gameObject);
         }
     }
+
+    protected virtual void InGameStart() { }
+    protected virtual void InGameUpdate() { }
+    protected virtual void InGameFixedUpdate() { }
 
     protected virtual void Start()
     {
@@ -55,6 +64,23 @@ public class PieceBase : MonoBehaviour
         {
             shipController = transform.parent.GetComponent<ShipController>();
             shipRb = transform.parent.GetComponent<Rigidbody2D>();
+            InGameStart();
+        }
+    }
+
+    protected virtual void Update()
+    {
+        if (!GlobalsManager.inBuildMode)
+        {
+            InGameUpdate();
+        }
+    }
+
+    protected virtual void FixedUpdate()
+    {
+        if (!GlobalsManager.inBuildMode)
+        {
+            InGameFixedUpdate();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -73,7 +74,6 @@ public class GridPosition
         }
     }
 }
-#endregion
 
 public enum BuildingOption
 {
@@ -81,6 +81,7 @@ public enum BuildingOption
     Build,
     Delete
 }
+#endregion
 
 public class BuildingSystem : MonoBehaviour
 {
@@ -90,10 +91,12 @@ public class BuildingSystem : MonoBehaviour
     [SerializeField] private GameObject visualisationSprite;
     [SerializeField] private GameObject currentRender;
     [SerializeField] private TextMeshProUGUI buildPrice;
+    [SerializeField] private TextMeshProUGUI launchErrorMessage;
     [SerializeField] private GameObject shipDataContainer;
     [SerializeField] private GameObject canvas;
-
-    [SerializeField] private GameObject RedZonePrefab;
+    [SerializeField] private GameObject redZonePrefab;
+    [SerializeField] private AudioSource placeSoundEffect;
+    [SerializeField] private AudioSource deleteSoundEffect;
 
     private Collider2D gridCollider;
     private GridManager gridManager;
@@ -104,6 +107,7 @@ public class BuildingSystem : MonoBehaviour
     private Color invalidPlacementColor = new Color(1, 0, 0, 0.7f);
     private ShipData shipData;
     private BuildingOption currentBuildOption = BuildingOption.Build;
+    private Piece currentHoveredPiece;
 
     private GridPosition[] directions = { new GridPosition(0, -1), new GridPosition(0, 1), new GridPosition(-1, 0), new GridPosition(1, 0) };
 
@@ -115,10 +119,11 @@ public class BuildingSystem : MonoBehaviour
     private TextMeshProUGUI buildingOptionSelectedText;
     private RectTransform hoverInfo;
 
-    // temporary
-    [SerializeField] private Piece[] debugPieces;
-    private int currentDebugPieceIndex;
-
+    private Transform piecesTabs;
+    private TextMeshProUGUI piecesTabName;
+    private TextMeshProUGUI piecesTabKnown;
+    private Transform piecesScrollViewport;
+    private GameObject pieceContainer;
     #endregion
 
     #region Maths Functions
@@ -128,18 +133,131 @@ public class BuildingSystem : MonoBehaviour
     }
     #endregion
 
-    #region Class Functions
-    public void SetActivePiece(Piece newPiece)
+    #region Public UI Functions
+    public void OpenNewShipModal()
+    {
+        newShipModal.gameObject.SetActive(true);
+        shipNameInput.text = "";
+        shipNameInput.Select();
+    }
+
+    public void ReturnToShipLoadMenu()
+    {
+        SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
+        shipData.gridData = serializableGrid;
+        SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
+        DisplaySavedShips();
+        canvas.transform.Find("ShipLoading").gameObject.SetActive(true);
+    }
+
+    public void SwitchToTab(int tabId)
+    {
+        PieceCategory category = (PieceCategory)tabId;
+        string categoryName = category.ToString();
+
+        foreach (Transform contentContainer in piecesScrollViewport)
+        {
+            contentContainer.gameObject.SetActive(contentContainer.name == categoryName);
+        }
+        foreach (Transform tab in piecesTabs)
+        {
+            if (tab.name == categoryName)
+            {
+                tab.GetComponent<Image>().color = new Color(1f / 255f, 200f / 255f, 177f / 255f);
+                tab.GetChild(0).GetComponent<Image>().color = new Color(1, 1, 1, 1);
+            }
+            else
+            {
+                tab.GetComponent<Image>().color = new Color(42f / 255f, 42f / 255f, 42f / 255f);
+                tab.GetChild(0).GetComponent<Image>().color = new Color(1, 1, 1, 0.3f);
+            }
+        }
+        piecesTabName.text = categoryName;
+        piecesTabKnown.text = $"{piecesScrollViewport.Find(categoryName).childCount} known";
+    }
+
+    public void SwitchBuildingOption(int optionIndex)
+    {
+        currentBuildOption = (BuildingOption)optionIndex;
+        string buildingOptionName = currentBuildOption.ToString();
+
+        foreach (RectTransform button in buildingOptionButtons)
+        {
+            Image buttonBackground = button.GetComponent<Image>();
+            Image buttonIcon = button.Find("Icon").GetComponent<Image>();
+
+            if (button.gameObject.name == buildingOptionName)
+            {
+                button.DOSizeDelta(new Vector2(80, 80), 0.3f);
+                buttonBackground.DOColor(new Color(1f / 255f, 200f / 255f, 177f / 255f), 0.3f);
+                buttonIcon.DOColor(new Color(1, 1, 1, 1), 0.3f);
+            }
+            else
+            {
+                button.DOSizeDelta(new Vector2(70, 70), 0.3f);
+                buttonBackground.DOColor(new Color(108f / 255f, 108f / 255f, 108f / 255f), 0.3f);
+                buttonIcon.DOColor(new Color(1, 1, 1, 0.3f), 0.3f);
+            }
+        }
+
+        buildingOptionSelectedText.text = $"{buildingOptionName} Mode";
+    }
+
+    public void LaunchShip()
+    {
+        bool hasCore = false;
+        foreach (KeyValuePair<GridPosition, GridCell> kvp in gridData)
+        {
+            Piece pieceData = PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex);
+            if (pieceData.DisplayName == "Ship Core")
+            {
+                hasCore = true;
+            }
+
+        }
+        if (!hasCore)
+        {
+            launchErrorMessage.gameObject.SetActive(true);
+            launchErrorMessage.text = "The ship requires a core before launching.";
+            return;
+        }
+
+        if (gridData.Count != FloodFillCountCells(gridData.First().Key))
+        {
+            launchErrorMessage.gameObject.SetActive(true);
+            launchErrorMessage.text = "All pieces must be connected before launching.";
+            return;
+        }
+
+        // save ship
+        SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
+        shipData.gridData = serializableGrid;
+        SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
+
+        GlobalsManager.inBuildMode = false;
+        if (GlobalsManager.currentGameMode == GameMode.Restricted)
+        {
+            SceneManager.LoadScene("InGame");
+        }
+        else
+        {
+            SceneManager.LoadScene("ShipTestingZone");
+        }
+    }
+    #endregion
+
+    #region Private Functions
+    private void SetActivePiece(Piece newPiece)
     {
         activePiece = newPiece;
         Debug.Log(newPiece);
-        visualisationSprite.GetComponent<SpriteRenderer>().sprite = newPiece.Prefab.GetComponent<SpriteRenderer>().sprite;
+        visualisationSprite.GetComponent<SpriteRenderer>().sprite = newPiece.PreviewImage;
 
         // reset certain properties
         visualisationSprite.transform.rotation = Quaternion.identity;
     }
 
-    public bool ValidateSquares(List<GridPosition> squares)
+    private bool ValidateSquares(List<GridPosition> squares)
     {
         List<GridPosition> invalidPositions = new List<GridPosition>();
 
@@ -203,7 +321,7 @@ public class BuildingSystem : MonoBehaviour
             {
                 if (restrictionPos.restrictionType == RestrictionType.RedZone)
                 {
-                    GameObject redZone = Instantiate(RedZonePrefab);
+                    GameObject redZone = Instantiate(redZonePrefab);
                     Vector2 rotatedPosition = RotateAroundOrigin(restrictionPos.relativePosition.ToVector2(), (360 - data.rotation) * Mathf.Deg2Rad);
                     redZone.transform.position = spritePosition + cellSize * new Vector2(rotatedPosition.x, -rotatedPosition.y);
                     redZone.transform.parent = currentRender.transform;
@@ -221,60 +339,31 @@ public class BuildingSystem : MonoBehaviour
         }
     }
 
-    public void LoadShip(int shipID)
+    private void GeneratePiecesUI()
     {
-        if (SaveManager.instance.LoadShipData(shipID, out shipData))
+        foreach (Piece piece in PieceManager.instance.pieces)
         {
-            GlobalsManager.currentShipID = shipID;
+            GameObject newPieceContainer = Instantiate(pieceContainer, piecesScrollViewport.GetChild((int)piece.Category));
+            newPieceContainer.transform.Find("PreviewImage").GetComponent<Image>().sprite = piece.PreviewImage;
+            newPieceContainer.transform.Find("PieceName").GetComponent<TextMeshProUGUI>().text = piece.DisplayName;
+            newPieceContainer.transform.Find("CostBar").Find("Cost").GetComponent<TextMeshProUGUI>().text = $"{piece.Cost} GC";
+            newPieceContainer.SetActive(true);
 
-            gridData = SaveManager.instance.ConvertGridFromSerializable(shipData.gridData);
-            RenderGridData();
+            newPieceContainer.GetComponent<Button>().onClick.AddListener(() => { SetActivePiece(piece); });
+            EventTrigger trigger = newPieceContainer.GetComponent<EventTrigger>();
 
-            canvas.transform.Find("ShipLoading").gameObject.SetActive(false);
-            canvas.transform.Find("ShipData").GetComponentInChildren<TMP_InputField>().text = shipData.name;
+            EventTrigger.Entry pointerEnterEvent = new EventTrigger.Entry();
+            pointerEnterEvent.eventID = EventTriggerType.PointerEnter;
+            pointerEnterEvent.callback.AddListener((data) => { Debug.Log("Pointer entered"); currentHoveredPiece = piece; });
+
+            EventTrigger.Entry pointerExitEvent = new EventTrigger.Entry();
+            pointerExitEvent.eventID = EventTriggerType.PointerExit;
+            pointerExitEvent.callback.AddListener((data) => { Debug.Log("Pointer exited"); currentHoveredPiece = null; });
+
+            trigger.triggers.Add(pointerEnterEvent);
+            trigger.triggers.Add(pointerExitEvent);
         }
-    }
-
-    public void OpenNewShipModal()
-    {
-        newShipModal.gameObject.SetActive(true);
-        shipNameInput.text = "";
-        shipNameInput.Select();
-    }
-
-    public void ReturnToShipLoadMenu()
-    {
-        SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
-        shipData.gridData = serializableGrid;
-        SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
-        DisplaySavedShips();
-        canvas.transform.Find("ShipLoading").gameObject.SetActive(true);
-    }
-
-    public void SwitchBuildingOption(int optionIndex)
-    {
-        currentBuildOption = (BuildingOption)optionIndex;
-        string buildingOptionName = currentBuildOption.ToString();
-
-        foreach (RectTransform button in buildingOptionButtons)
-        {
-            Image buttonBackground = button.GetComponent<Image>();
-            Image buttonIcon = button.Find("Icon").GetComponent<Image>();
-
-            if (button.gameObject.name == buildingOptionName)
-            {
-                button.DOSizeDelta(new Vector2(80, 80), 0.3f);
-                buttonBackground.DOColor(new Color(1f / 255f, 200f / 255f, 177f / 255f), 0.3f);
-                buttonIcon.DOColor(new Color(1, 1, 1, 1), 0.3f);
-            } else
-            {
-                button.DOSizeDelta(new Vector2(70, 70), 0.3f);
-                buttonBackground.DOColor(new Color(108f / 255f, 108f / 255f, 108f / 255f), 0.3f);
-                buttonIcon.DOColor(new Color(1, 1, 1, 0.3f), 0.3f);
-            }
-        }
-
-        buildingOptionSelectedText.text = $"{buildingOptionName} Mode";
+        Destroy(pieceContainer);
     }
 
     private int FloodFillCountCells(GridPosition currentPosition, List<GridPosition> visited = null)
@@ -297,23 +386,6 @@ public class BuildingSystem : MonoBehaviour
         return cellCount;
     }
 
-    public void LaunchShip()
-    {
-        if (gridData.Count != FloodFillCountCells(gridData.First().Key))
-        {
-            Debug.Log("not all pieces are connected");
-            return;
-        }
-
-        // save ship
-        SerializableGrid serializableGrid = SaveManager.instance.ConvertGridToSerializable(gridData);
-        shipData.gridData = serializableGrid;
-        SaveManager.instance.SaveShipData(GlobalsManager.currentShipID, shipData);
-
-        GlobalsManager.inBuildMode = false;
-        SceneManager.LoadScene("ShipTestingZone");
-    }
-
     private void DisplaySavedShips()
     {
         foreach (Transform child in shipDataContainer.transform.parent)
@@ -326,7 +398,8 @@ public class BuildingSystem : MonoBehaviour
 
         int[] shipIDs = SaveManager.instance.GetAllShipIDs();
 
-        if (shipIDs.Length > 0) {
+        if (shipIDs.Length > 0)
+        {
             noShipsMessage.SetActive(false);
 
             foreach (int shipID in shipIDs)
@@ -347,9 +420,24 @@ public class BuildingSystem : MonoBehaviour
                     containerClone.SetActive(true);
                 }
             }
-        } else
+        }
+        else
         {
             noShipsMessage.SetActive(true);
+        }
+    }
+
+    private void LoadShip(int shipID)
+    {
+        if (SaveManager.instance.LoadShipData(shipID, out shipData))
+        {
+            GlobalsManager.currentShipID = shipID;
+
+            gridData = SaveManager.instance.ConvertGridFromSerializable(shipData.gridData);
+            RenderGridData();
+
+            canvas.transform.Find("ShipLoading").gameObject.SetActive(false);
+            canvas.transform.Find("ShipData").GetComponentInChildren<TMP_InputField>().text = shipData.name;
         }
     }
     #endregion
@@ -361,8 +449,6 @@ public class BuildingSystem : MonoBehaviour
 
         gridCollider = grid.GetComponent<Collider2D>();
         gridManager = grid.GetComponent<GridManager>();
-
-        SetActivePiece(debugPieces[currentDebugPieceIndex]);
 
         // get ui references
         newShipModal = canvas.transform.Find("NewShipModal");
@@ -379,9 +465,21 @@ public class BuildingSystem : MonoBehaviour
 
         hoverInfo = (RectTransform)canvas.transform.Find("HoverInfo");
 
+        Transform pieceSelection = canvas.transform.Find("Pieces");
+        Transform piecesTabDescription = pieceSelection.Find("TabDescription");
+
+        piecesTabs = pieceSelection.Find("Tabs").Find("Options");
+        piecesScrollViewport = pieceSelection.Find("ScrollRect").Find("Viewport");
+        piecesTabName = piecesTabDescription.Find("TabName").GetComponent<TextMeshProUGUI>();
+        piecesTabKnown = piecesTabDescription.Find("KnownCount").GetComponent<TextMeshProUGUI>();
+        pieceContainer = piecesScrollViewport.GetChild(0).GetChild(0).gameObject;
+
         buildPrice.gameObject.SetActive(GlobalsManager.currentGameMode == GameMode.Restricted);
 
         DisplaySavedShips();
+        GeneratePiecesUI();
+        SwitchToTab(0);
+        SetActivePiece(PieceManager.instance.pieces[0]);
 
         // cancelled input
         shipNameInput.onEndEdit.AddListener(delegate {
@@ -427,7 +525,7 @@ public class BuildingSystem : MonoBehaviour
             {
                 foreach (KeyValuePair<GridPosition, GridCell> kvp in gridData)
                 {
-                    if (activePiece.Name == PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex).Name)
+                    if (activePiece.DisplayName == PieceManager.instance.GetPieceFromIndex(kvp.Value.pieceIndex).DisplayName)
                     {
                         isValid = false;
                         break;
@@ -450,36 +548,29 @@ public class BuildingSystem : MonoBehaviour
                 visualisationSprite.SetActive(false);
                 if (gridData.ContainsKey(new GridPosition(gridPosition)))
                 {
-                    hoverInfo.gameObject.SetActive(true);
-                    Piece hoveredPieceData = PieceManager.instance.GetPieceFromIndex(gridData[new GridPosition(gridPosition)].pieceIndex);
-
-                    hoverInfo.anchoredPosition = Input.mousePosition;
-                    hoverInfo.GetComponentInChildren<TextMeshProUGUI>().text = hoveredPieceData.Name;
+                    currentHoveredPiece = PieceManager.instance.GetPieceFromIndex(gridData[new GridPosition(gridPosition)].pieceIndex);
                 } else
                 {
-                    hoverInfo.gameObject.SetActive(false);
+                    if (gridPosition.magnitude > 0)
+                    {
+                        currentHoveredPiece = null;
+                        Debug.Log("hiding piece");
+                    }
                 }
 
                 break;
             case BuildingOption.Build:
-                hoverInfo.gameObject.SetActive(false);
-
-                if (Input.GetKeyDown(KeyCode.E))
-                {
-                    currentDebugPieceIndex = ++currentDebugPieceIndex % debugPieces.Length;
-                    SetActivePiece(debugPieces[currentDebugPieceIndex]);
-                }
-
                 if (Input.GetKeyDown(KeyCode.R))
                 {
                     visualisationSprite.transform.Rotate(Vector3.forward, -90);
                 }
 
-                if (Input.GetMouseButtonDown(0) && isValid)
+                if (Input.GetMouseButtonDown(0) && isValid && (GlobalsManager.currentGameMode == GameMode.Sandbox || GlobalsManager.gameData.credits >= activePiece.Cost))
                 {
                     GlobalsManager.gameData.credits -= activePiece.Cost;
                     gridData.Add(new GridPosition(gridPosition), new GridCell(PieceManager.instance.GetIndexFromPiece(activePiece), visualisationSprite.transform.rotation.eulerAngles.z));
                     RenderGridData();
+                    placeSoundEffect.Play();
                 }
                 if (Input.GetMouseButtonDown(1))
                 {
@@ -488,13 +579,13 @@ public class BuildingSystem : MonoBehaviour
                         GlobalsManager.gameData.credits += activePiece.Cost;
                         gridData.Remove(new GridPosition(gridPosition));
                         RenderGridData();
+                        deleteSoundEffect.Play();
                     }
                 }
 
                 break;
             case BuildingOption.Delete:
                 visualisationSprite.SetActive(false);
-                hoverInfo.gameObject.SetActive(false);
 
                 if (Input.GetMouseButtonDown(0))
                 {
@@ -503,10 +594,41 @@ public class BuildingSystem : MonoBehaviour
                         GlobalsManager.gameData.credits += activePiece.Cost;
                         gridData.Remove(new GridPosition(gridPosition));
                         RenderGridData();
+                        deleteSoundEffect.Play();
                     }
                 }
 
                 break;
+        }
+
+        if (currentHoveredPiece != null)
+        {
+            hoverInfo.anchoredPosition = (Vector2)Input.mousePosition + new Vector2(5, 5);
+            hoverInfo.pivot = new Vector2(hoverInfo.anchoredPosition.x + hoverInfo.sizeDelta.x > Screen.width ? 1 : 0, 0);
+
+            TextMeshProUGUI pieceDisplayNameTitle = hoverInfo.Find("Title").GetComponentInChildren<TextMeshProUGUI>();
+            if (pieceDisplayNameTitle.text != currentHoveredPiece.DisplayName)
+            {
+                // update hover info
+                pieceDisplayNameTitle.text = currentHoveredPiece.DisplayName;
+                hoverInfo.Find("Description").GetComponent<TextMeshProUGUI>().text = currentHoveredPiece.Description;
+                hoverInfo.Find("CostStat").Find("Amount").GetComponentInChildren<TextMeshProUGUI>().text = $"{currentHoveredPiece.Cost} GC";
+
+                Transform massValueBar = hoverInfo.Find("MassStat").Find("ValueBar");
+                RectTransform massInnerBar = (RectTransform)massValueBar.Find("BarContainer").Find("InnerBar");
+                massValueBar.GetComponentInChildren<TextMeshProUGUI>().text = currentHoveredPiece.Mass.ToString();
+                massInnerBar.DOAnchorMax(new Vector2(currentHoveredPiece.Mass / PieceManager.instance.maxMass, 1), 0.3f);
+
+                Transform healthValueBar = hoverInfo.Find("HealthStat").Find("ValueBar");
+                RectTransform healthInnerBar = (RectTransform)healthValueBar.Find("BarContainer").Find("InnerBar");
+                healthValueBar.GetComponentInChildren<TextMeshProUGUI>().text = currentHoveredPiece.Health.ToString();
+                healthInnerBar.DOAnchorMax(new Vector2(currentHoveredPiece.Health / PieceManager.instance.maxHealth, 1), 0.3f);
+            }
+
+            hoverInfo.gameObject.SetActive(true);
+        } else
+        {
+            hoverInfo.gameObject.SetActive(false);
         }
     }
     #endregion

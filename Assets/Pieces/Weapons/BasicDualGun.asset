@@ -12,14 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5852c7c3e0a250a448bebfb4fd6bedea, type: 3}
   m_Name: BasicDualGun
   m_EditorClassIdentifier: 
-  Name: Basic Dual Fire
+  DisplayName: Basic Dual Fire
+  Description: A gun with two barrels allowing for a fast fire rate.
+  PreviewImage: {fileID: 21300000, guid: 1c20b42b110598e4fb5e129c6599988d, type: 3}
   Category: 2
   Prefab: {fileID: 7660878814427203623, guid: 7712a2f868ad7e041a4fb48d22df777b, type: 3}
   Health: 100
   Cost: 100
   Mass: 20
   OnlyAllowOne: 0
-  Damage: 20
+  ProjectilePrefab: {fileID: 9129132461968332717, guid: a4aea3b014faf9a4693cf898718920d0, type: 3}
   FireRate: 0.1
-  Range: 100
   EnergyUsage: 10
+  ContinuousShotsTillCooldown: 20
+  CooldownTime: 1.5

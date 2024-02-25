@@ -7,6 +7,8 @@ public class PieceManager : MonoBehaviour
     public static PieceManager instance { get; private set; }
 
     public List<Piece> pieces = new List<Piece>();
+    public float maxMass;
+    public float maxHealth;
 
     public Piece GetPieceFromIndex(int index)
     {
@@ -23,7 +25,7 @@ public class PieceManager : MonoBehaviour
 
     public int GetIndexFromPiece(Piece data)
     {
-        return pieces.FindIndex(piece => piece.Name == data.Name);
+        return pieces.FindIndex(piece => piece.DisplayName == data.DisplayName);
     }
 
     private void Awake()
@@ -35,6 +37,12 @@ public class PieceManager : MonoBehaviour
         else
         {
             instance = this;
+        }
+
+        foreach (Piece piece in pieces)
+        {
+            maxMass = Mathf.Max(maxMass, piece.Mass);
+            maxHealth = Mathf.Max(maxHealth, piece.Health);
         }
     }
 }
