@@ -28,6 +28,11 @@ public class PieceManager : MonoBehaviour
         return pieces.FindIndex(piece => piece.DisplayName == data.DisplayName);
     }
 
+    public List<RestrictedPosition> GetRestrictedPositionsFromPiece(Piece data)
+    {
+        return data.Prefab.GetComponent<PieceBase>().restrictedPositions;
+    }
+
     private void Awake()
     {
         if (instance != null && instance != this)

@@ -55,7 +55,7 @@ public class PieceBase : MonoBehaviour, IDamagable
 
     protected virtual void Start()
     {
-        pieceRenderer = GetComponent<Renderer>();
+        pieceRenderer = GetComponentInChildren<Renderer>();
         pieceRenderer.material.SetFloat("_NoiseSeed", Random.value * 600);
 
         health = pieceData.Health;

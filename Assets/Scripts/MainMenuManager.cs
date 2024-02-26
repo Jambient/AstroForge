@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
 
-public class UIManager : MonoBehaviour
+public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private List<GameObject> screens = new List<GameObject>();
     [SerializeField] private Image fadeFrame;

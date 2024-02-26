@@ -3308,11 +3308,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc372816c454f2a4ca60c1f3c726c4d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  canvas: {fileID: 1189165093}
   enemies: {fileID: 241233575}
   discoveries: {fileID: 2012954315}
   enemyIndicator: {fileID: 1087713739623299941, guid: 5b47b970fc26d2b4596e15457c74e6b7, type: 3}
   discoveryIndicator: {fileID: 5560241138331894240, guid: 5c506f89bca256c44b00f70bb9bda1e1, type: 3}
+  roundText: {fileID: 1981295523}
+  coinText: {fileID: 1511095226}
+  researchPointsText: {fileID: 1190123848}
+  powerUsageBar: {fileID: 158691896}
+  coreHealthBar: {fileID: 1929704372}
+  roundCompletedContainer: {fileID: 1682636882}
+  roundCompletedTitleText: {fileID: 894332742}
+  creditsEarnedStatText: {fileID: 731067738}
+  timeTakenStatText: {fileID: 1290842694}
+  roundFailedContainer: {fileID: 1407178163}
+  roundFailedTitleText: {fileID: 486388962}
+  enemiesKilledStatText: {fileID: 5614445}
+  playerIndicator: {fileID: 33934584}
+  enemyCountText: {fileID: 414780068}
+  ringBoundary: {fileID: 339222234}
+  mapIndicators: {fileID: 1387864089}
 --- !u!4 &872972812
 Transform:
   m_ObjectHideFlags: 0
@@ -3670,6 +3685,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f2e4eeeffbe3ad04a9244831f70fca37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hudManager: {fileID: 872972811}
 --- !u!4 &908589664
 Transform:
   m_ObjectHideFlags: 0
@@ -6269,6 +6285,7 @@ MonoBehaviour:
   creditsEarned: 0
   initialEnemyCount: 0
   roundFinished: 0
+  hudManager: {fileID: 872972811}
   enemies: {fileID: 241233575}
   discoveries: {fileID: 2012954315}
   arenaRing: {fileID: 1066913707}

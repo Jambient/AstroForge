@@ -11,7 +11,8 @@ public class PauseManager : MonoBehaviour
     public static PauseManager instance { get; private set; }
     public bool isGamePaused = false;
 
-    [SerializeField] GameObject pauseMenu;
+    [SerializeField] private GameObject pauseMenu;
+    [SerializeField] private BuildingSystem buildingSystem;
 
     public void Resume()
     {
@@ -23,19 +24,13 @@ public class PauseManager : MonoBehaviour
     public void ReturnToMenu()
     {
         isGamePaused = false;
-        if (GlobalsManager.currentGameMode == GameMode.Restricted)
-        {
-            SaveManager.instance.SaveGameData(GlobalsManager.gameData);
-        }
+        SaveDataIfNeeded();
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu");
     }
     public void Quit()
     {
-        if (GlobalsManager.currentGameMode == GameMode.Restricted)
-        {
-            SaveManager.instance.SaveGameData(GlobalsManager.gameData);
-        }
+        SaveDataIfNeeded();
         Application.Quit();
     }
     public void OnPause()
@@ -46,6 +41,18 @@ public class PauseManager : MonoBehaviour
         EventSystem.current.SetSelectedGameObject(null);
         Time.timeScale = 0f;
         pauseMenu.SetActive(true);
+    }
+
+    private void SaveDataIfNeeded()
+    {
+        if (GlobalsManager.currentGameMode == GameMode.Restricted)
+        {
+            SaveManager.instance.SaveGameData(GlobalsManager.gameData);
+        }
+        if (GlobalsManager.currentShipID >= 0 && GlobalsManager.inBuildMode)
+        {
+            buildingSystem.SaveCurrentShipData();
+        }
     }
 
     private void Awake()

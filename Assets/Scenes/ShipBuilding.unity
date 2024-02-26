@@ -2157,8 +2157,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchToTab
         m_Mode: 3
         m_Arguments:
@@ -3250,8 +3250,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchToTab
         m_Mode: 3
         m_Arguments:
@@ -4939,8 +4939,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: OpenNewShipModal
         m_Mode: 1
         m_Arguments:
@@ -5817,8 +5817,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchBuildingOption
         m_Mode: 3
         m_Arguments:
@@ -6385,6 +6385,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   isGamePaused: 0
   pauseMenu: {fileID: 695393841}
+  buildingSystem: {fileID: 1218828485}
 --- !u!1 &894373344
 GameObject:
   m_ObjectHideFlags: 0
@@ -8338,8 +8339,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchToTab
         m_Mode: 3
         m_Arguments:
@@ -8488,8 +8489,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchToTab
         m_Mode: 3
         m_Arguments:
@@ -8885,6 +8886,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1218828484}
   - component: {fileID: 1218828485}
+  - component: {fileID: 1218828486}
   m_Layer: 0
   m_Name: BuildingManager
   m_TagString: Untagged
@@ -8919,16 +8921,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d8073e5e7763ee4f8090dde76978ae5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  grid: {fileID: 1414974086}
-  visualisationSprite: {fileID: 2015169913}
-  currentRender: {fileID: 1892070725}
-  buildPrice: {fileID: 1797749280}
-  launchErrorMessage: {fileID: 0}
-  shipDataContainer: {fileID: 173004215}
-  canvas: {fileID: 2026053089}
-  redZonePrefab: {fileID: 4979205562085736627, guid: 113aad8a7dfa3af4b8ce4053a93c6fbd, type: 3}
+  shipData:
+    name: 
+    gridData:
+      keys: []
+      values: []
+  currentBuildMode: 1
+  gridManager: {fileID: 1414974090}
+  uiManager: {fileID: 1218828486}
   placeSoundEffect: {fileID: 800310083}
   deleteSoundEffect: {fileID: 31173284}
+--- !u!114 &1218828486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1218828483}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5df2a007b07b91742a598df03ced4d21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentHoveredPiece: {fileID: 0}
+  buildingSystem: {fileID: 1218828485}
+  availableCurrencyText: {fileID: 1797749280}
+  launchErrorText: {fileID: 1540174378}
+  shipNameText: {fileID: 909673464}
+  selectedBuildingModeText: {fileID: 748926447}
+  piecesTabs: {fileID: 650458338}
+  piecesScrollViewport: {fileID: 1557223219}
+  piecesTabName: {fileID: 172148324}
+  piecesTabKnown: {fileID: 1871409734}
+  pieceContainer: {fileID: 84984604}
+  shipLoadingScreen: {fileID: 203649539}
+  shipDataContainer: {fileID: 173004215}
+  noShipsMessage: {fileID: 1403796283}
+  newShipModal: {fileID: 347516288}
+  shipNameInput: {fileID: 1641150121}
+  buildingOptionButtons: {fileID: 2069984339}
+  hoverInfo: {fileID: 844096482}
 --- !u!1 &1250632013
 GameObject:
   m_ObjectHideFlags: 0
@@ -9408,6 +9440,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c9d6accf41bc2b248bc6ad0c156b9f81, type: 2}
   - {fileID: 11400000, guid: 8f7de6b8784d9524bb3693cd9fddf182, type: 2}
   - {fileID: 11400000, guid: e27518f7f31098d4eb2004391edeff8e, type: 2}
+  - {fileID: 11400000, guid: edd5ee0cb32737740aaa06b998af58aa, type: 2}
   maxMass: 0
   maxHealth: 0
 --- !u!4 &1388207449
@@ -9662,7 +9695,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 584d5d5785503944f98918559f977d96, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gridSize: {x: 11, y: 11}
+  showPieceVisualisation: 1
+  _gridSize: {x: 11, y: 11}
+  visualisationSprite: {fileID: 2015169913}
+  currentRender: {fileID: 1892070725}
+  redZonePrefab: {fileID: 4979205562085736627, guid: 113aad8a7dfa3af4b8ce4053a93c6fbd, type: 3}
 --- !u!1 &1425210269
 GameObject:
   m_ObjectHideFlags: 0
@@ -9869,8 +9906,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: ReturnToShipLoadMenu
         m_Mode: 1
         m_Arguments:
@@ -12004,7 +12041,7 @@ GameObject:
   - component: {fileID: 1797749281}
   - component: {fileID: 1797749280}
   m_Layer: 5
-  m_Name: BuildPriceText
+  m_Name: AvailableCurrencyText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -12028,7 +12065,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 300, y: 30}
+  m_SizeDelta: {x: 400, y: 30}
   m_Pivot: {x: 0, y: 0}
 --- !u!114 &1797749280
 MonoBehaviour:
@@ -13257,8 +13294,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchBuildingOption
         m_Mode: 3
         m_Arguments:
@@ -13902,8 +13939,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1218828485}
-        m_TargetAssemblyTypeName: BuildingSystem, Assembly-CSharp
+      - m_Target: {fileID: 1218828486}
+        m_TargetAssemblyTypeName: BuildingUIManager, Assembly-CSharp
         m_MethodName: SwitchBuildingOption
         m_Mode: 3
         m_Arguments:

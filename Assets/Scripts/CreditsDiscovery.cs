@@ -4,8 +4,11 @@ using UnityEngine;
 
 public class CreditsDiscovery : MonoBehaviour
 {
+    #region Variables
     private Transform ring;
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Start()
     {
         ring = transform.Find("Ring");
@@ -24,4 +27,5 @@ public class CreditsDiscovery : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    #endregion
 }

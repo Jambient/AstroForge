@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,33 +5,16 @@ using UnityEngine.UI;
 
 public class ButtonEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, ISelectHandler, IDeselectHandler
 {
+    #region Variables
     private Button buttonComponent;
     private TextMeshProUGUI buttonText;
-    private Color hoverColor = new Color(32 / 255, 32 / 255, 32 / 255);
+    private Color hoverColor = new Color(32f / 255f, 32f / 255f, 32f / 255f);
     private Color normalColor;
     private bool isHovering;
     private bool isSelected;
+    #endregion
 
-    private void Start()
-    {
-        buttonComponent = GetComponent<Button>();
-        buttonText = GetComponentInChildren<TextMeshProUGUI>();
-        normalColor = buttonText.color;
-
-        buttonComponent.onClick.AddListener(() =>
-        {
-            isHovering = false;
-            isSelected = false;
-            EventSystem.current.SetSelectedGameObject(null);
-        });
-    }
-
-    private void Update()
-    {
-        if (!buttonComponent.interactable) { return; }
-        buttonText.color = isHovering || isSelected ? hoverColor : normalColor;
-    }
-
+    #region Interface Methods
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovering = true;
@@ -53,4 +34,27 @@ public class ButtonEffect : MonoBehaviour, IPointerEnterHandler, IPointerExitHan
     {
         isSelected = false;
     }
+    #endregion
+
+    #region MonoBehaviour Messages
+    private void Start()
+    {
+        buttonComponent = GetComponent<Button>();
+        buttonText = GetComponentInChildren<TextMeshProUGUI>();
+        normalColor = buttonText.color;
+
+        buttonComponent.onClick.AddListener(() =>
+        {
+            isHovering = false;
+            isSelected = false;
+            EventSystem.current.SetSelectedGameObject(null);
+        });
+    }
+
+    private void Update()
+    {
+        if (!buttonComponent.interactable) { return; }
+        buttonText.color = isHovering || isSelected ? hoverColor : normalColor;
+    }
+    #endregion
 }

@@ -17,42 +17,43 @@ public enum UpdateMode
 
 public class HUDManager : MonoBehaviour
 {
-    public static HUDManager instance { get; private set; }
-
-    [SerializeField] private Transform canvas;
+    #region Variables
+    [Header("Object References")]
     [SerializeField] private Transform enemies;
     [SerializeField] private Transform discoveries;
     [SerializeField] private GameObject enemyIndicator;
     [SerializeField] private GameObject discoveryIndicator;
 
+    [Header("UI References")]
+    [SerializeField] private TextMeshProUGUI roundText;
+    [SerializeField] private TextMeshProUGUI coinText;
+    [SerializeField] private TextMeshProUGUI researchPointsText;
+
+    [SerializeField] private RectTransform powerUsageBar;
+    [SerializeField] private RectTransform coreHealthBar;
+
+    [SerializeField] private Transform roundCompletedContainer;
+    [SerializeField] private TextMeshProUGUI roundCompletedTitleText;
+    [SerializeField] private TextMeshProUGUI creditsEarnedStatText;
+    [SerializeField] private TextMeshProUGUI timeTakenStatText;
+
+    [SerializeField] private Transform roundFailedContainer;
+    [SerializeField] private TextMeshProUGUI roundFailedTitleText;
+    [SerializeField] private TextMeshProUGUI enemiesKilledStatText;
+
+    [SerializeField] private RectTransform playerIndicator;
+    [SerializeField] private TextMeshProUGUI enemyCountText;
+    [SerializeField] private RectTransform ringBoundary;
+    [SerializeField] private Transform mapIndicators;
+
     private const float minimapWorldSize = 15;
-
-    // round info ui references
-    private TextMeshProUGUI coinText;
-    private TextMeshProUGUI researchPointsText;
-
-    // ship info ui references
-    private RectTransform powerUsageBar;
-    private RectTransform coreHealthBar;
-
-    // round completed ui references
-    private Transform roundCompletedContainer;
-    private TextMeshProUGUI roundCompletedTitleText;
-    private TextMeshProUGUI creditsEarnedStatText;
-    private TextMeshProUGUI timeTakenStatText;
-
-    // round failed ui references
-    private Transform roundFailedContainer;
-    private TextMeshProUGUI roundFailedTitleText;
-    private TextMeshProUGUI enemiesKilledStatText;
-
-    // minimap ui references
-    private RectTransform playerIndicator;
-    private TextMeshProUGUI enemyCountText;
-    private RectTransform ringBoundary;
-    private Transform mapIndicators;
     private List<Indicator> activeIndicators = new List<Indicator>();
+    #endregion
 
+    #region Public Methods
+    /// <summary>
+    /// Refreshes the minimaps indicators
+    /// </summary>
     public void RefreshMinimap()
     {
         foreach (Transform child in mapIndicators)
@@ -70,6 +71,11 @@ public class HUDManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates the power usage stat on the UI
+    /// </summary>
+    /// <param name="newPowerUsagePercent">New percentage</param>
+    /// <param name="updateMode">The mode for updating the stat bar</param>
     public void UpdatePowerUsageStat(float newPowerUsagePercent, UpdateMode updateMode)
     {
         Vector2 newAnchorMax = new Vector2(1, newPowerUsagePercent);
@@ -83,6 +89,12 @@ public class HUDManager : MonoBehaviour
                 break;
         }
     }
+
+    /// <summary>
+    /// Updates the core health stat on the UI
+    /// </summary>
+    /// <param name="newHealthPercent">New percentage</param>
+    /// <param name="updateMode">The mode for updating the stat bar</param>
     public void UpdateCoreHealthStat(float newHealthPercent, UpdateMode updateMode)
     {
         Vector2 newAnchorMax = new Vector2(1, newHealthPercent);
@@ -97,6 +109,9 @@ public class HUDManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Updates and shows the round completed UI
+    /// </summary>
     public void ShowRoundCompletedUI()
     {
         roundCompletedTitleText.text = $"ROUND {GlobalsManager.gameData.currentRound} COMPLETE";
@@ -105,6 +120,9 @@ public class HUDManager : MonoBehaviour
         roundCompletedContainer.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// Updates and shows the round failed UI
+    /// </summary>
     public void ShowRoundFailedUI()
     {
         roundFailedTitleText.text = $"ROUND {GlobalsManager.gameData.currentRound} FAILED";
@@ -112,80 +130,95 @@ public class HUDManager : MonoBehaviour
         roundFailedContainer.gameObject.SetActive(true);
     }
 
+    /// <summary>
+    /// Returns the user to the hanger
+    /// </summary>
     public void ReturnToHanger()
     {
         SceneManager.LoadScene("ShipBuilding");
     }
+    #endregion
 
-    private void AddNewIndicator(Transform enemy, GameObject indicatorPrefab)
+    #region Private Methods
+    /// <summary>
+    /// Adds a new indicator 
+    /// </summary>
+    /// <param name="trackedObject">The object the indicator is tracking</param>
+    /// <param name="indicatorPrefab">The prefab for the indicator</param>
+    private void AddNewIndicator(Transform trackedObject, GameObject indicatorPrefab)
     {
         GameObject newIndicator = Instantiate(indicatorPrefab, mapIndicators);
         Indicator indicatorData = new Indicator();
-        indicatorData.trackedObject = enemy;
+        indicatorData.trackedObject = trackedObject;
         indicatorData.indicator = newIndicator.GetComponent<RectTransform>();
 
         activeIndicators.Add(indicatorData);
     }
 
-    private bool CheckIndicator(Indicator data)
+    /// <summary>
+    /// Checks if the tracked object of an indicator is still valid, if not then the indicator is destroyed.
+    /// </summary>
+    /// <param name="data">Data about the indicator</param>
+    /// <returns>True if the indicator is valid, False otherwise</returns>
+    private bool IsIndicatorValid(Indicator data)
     {
         if (data.trackedObject == null && !ReferenceEquals(data.trackedObject, null))
         {
             Destroy(data.indicator.gameObject);
-            return true;
+            return false;
         }
         else
         {
-            return false;
+            return true;
         }
     }
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Start()
     {
-        Transform minimap = canvas.Find("Minimap");
-        Transform shipStats = canvas.Find("ShipStats");
-        Transform roundInfo = canvas.Find("RoundInfo");
+        //Transform minimap = canvas.Find("Minimap");
+        //Transform shipStats = canvas.Find("ShipStats");
+        //Transform roundInfo = canvas.Find("RoundInfo");
 
-        Transform minimapContent = minimap.Find("Content");
-        playerIndicator = (RectTransform)minimapContent.Find("PlayerIndicator");
+        //Transform minimapContent = minimap.Find("Content");
+        //playerIndicator = (RectTransform)minimapContent.Find("PlayerIndicator");
 
-        Transform minimapTextContainer = minimap.Find("TextContainer");
-        enemyCountText = minimapTextContainer.GetComponentInChildren<TextMeshProUGUI>();
+        //Transform minimapTextContainer = minimap.Find("TextContainer");
+        //enemyCountText = minimapTextContainer.GetComponentInChildren<TextMeshProUGUI>();
 
-        mapIndicators = minimapContent.Find("MapIndicators");
-        ringBoundary = (RectTransform)minimapContent.Find("RingBoundary");
+        //mapIndicators = minimapContent.Find("MapIndicators");
+        //ringBoundary = (RectTransform)minimapContent.Find("RingBoundary");
 
-        Transform powerUsageContainer = shipStats.Find("PowerUsage");
-        Transform coreHealthContainer = shipStats.Find("CoreHealth");
-        powerUsageBar = (RectTransform)powerUsageContainer.Find("InnerBar");
-        coreHealthBar = (RectTransform)coreHealthContainer.Find("InnerBar");
+        //Transform powerUsageContainer = shipStats.Find("PowerUsage");
+        //Transform coreHealthContainer = shipStats.Find("CoreHealth");
+        //powerUsageBar = (RectTransform)powerUsageContainer.Find("InnerBar");
+        //coreHealthBar = (RectTransform)coreHealthContainer.Find("InnerBar");
 
-        roundCompletedContainer = canvas.Find("RoundCompleted");
-        roundFailedContainer = canvas.Find("RoundFailed");
+        //roundCompletedContainer = canvas.Find("RoundCompleted");
+        //roundFailedContainer = canvas.Find("RoundFailed");
 
         // the round info, round completed, and round failed ui is only in the in-game scene not the testing scene
-        if (roundInfo)
+        if (roundText)
         {
-            Transform topSection = roundInfo.GetChild(0);
-            Transform bottomSection = roundInfo.GetChild(1);
-            TextMeshProUGUI[] textComponents = bottomSection.GetComponentsInChildren<TextMeshProUGUI>();
-
-            TextMeshProUGUI roundText = topSection.GetComponentInChildren<TextMeshProUGUI>();
+            //Transform topSection = roundInfo.GetChild(0);
+            //Transform bottomSection = roundInfo.GetChild(1);
+            //TextMeshProUGUI[] textComponents = bottomSection.GetComponentsInChildren<TextMeshProUGUI>();
             roundText.text = $"ROUND {GlobalsManager.gameData.currentRound}";
 
-            coinText = textComponents[0];
-            researchPointsText = textComponents[1];
+            //coinText = textComponents[0];
+            //researchPointsText = textComponents[1];
 
-            roundCompletedTitleText = roundCompletedContainer.GetComponentInChildren<TextMeshProUGUI>();
-            roundFailedTitleText = roundFailedContainer.GetComponentInChildren<TextMeshProUGUI>();
+            //roundCompletedTitleText = roundCompletedContainer.GetComponentInChildren<TextMeshProUGUI>();
+            //roundFailedTitleText = roundFailedContainer.GetComponentInChildren<TextMeshProUGUI>();
 
-            Transform creditsEarnedStatContainer = roundCompletedContainer.Find("CreditsEarnedStat");
-            Transform timeTakenStatContainer = roundCompletedContainer.Find("TimeTakenStat");
-            Transform enemiesKilledStatContainer = roundFailedContainer.Find("EnemiesKilledStat");
+            //Transform creditsEarnedStatContainer = roundCompletedContainer.Find("CreditsEarnedStat");
+            //Transform timeTakenStatContainer = roundCompletedContainer.Find("TimeTakenStat");
+            //Transform enemiesKilledStatContainer = roundFailedContainer.Find("EnemiesKilledStat");
 
-            creditsEarnedStatText = creditsEarnedStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
-            timeTakenStatText = timeTakenStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
-            enemiesKilledStatText = enemiesKilledStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
+            //creditsEarnedStatText = creditsEarnedStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
+            //timeTakenStatText = timeTakenStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
+            //enemiesKilledStatText = enemiesKilledStatContainer.GetComponentsInChildren<TextMeshProUGUI>()[1];
         }
 
         RefreshMinimap();
@@ -199,7 +232,7 @@ public class HUDManager : MonoBehaviour
         enemyCountText.text = $"{amountOfEnemies} ENEM{(amountOfEnemies != 1 ? "IES" : "Y")}";
 
         // update indicators
-        activeIndicators.RemoveAll(CheckIndicator);
+        activeIndicators.RemoveAll(data => !IsIndicatorValid(data));
         foreach (Indicator indicatorData in activeIndicators)
         {
             Vector3 direction = indicatorData.trackedObject.position - ShipController.ship.position;
@@ -219,16 +252,5 @@ public class HUDManager : MonoBehaviour
             researchPointsText.text = GlobalsManager.gameData.researchPoints.ToString();
         }
     }
-
-    private void Awake()
-    {
-        if (instance != null && instance != this)
-        {
-            Destroy(this);
-        }
-        else
-        {
-            instance = this;
-        }
-    }
+    #endregion
 }

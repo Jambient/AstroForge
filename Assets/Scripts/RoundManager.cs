@@ -20,6 +20,8 @@ public class RoundManager : MonoBehaviour
     public int initialEnemyCount;
     public bool roundFinished;
 
+    [SerializeField] private HUDManager hudManager;
+
     [SerializeField] private Transform enemies;
     [SerializeField] private Transform discoveries;
     [SerializeField] private Renderer arenaRing;
@@ -104,7 +106,7 @@ public class RoundManager : MonoBehaviour
         {
             roundFinished = true;
             GlobalsManager.gameData.credits += creditsEarned;
-            HUDManager.instance.ShowRoundCompletedUI();
+            hudManager.ShowRoundCompletedUI();
             GlobalsManager.gameData.currentRound += 1;
             SaveManager.instance.SaveGameData(GlobalsManager.gameData);
         }
@@ -112,14 +114,14 @@ public class RoundManager : MonoBehaviour
         if (ShipController.core == null)
         {
             roundFinished = true;
-            HUDManager.instance.ShowRoundFailedUI();
+            hudManager.ShowRoundFailedUI();
         }
     }
 
     private void Start()
     {
         SpawnCurrentRoundEnemies();
-        HUDManager.instance.RefreshMinimap();
+        hudManager.RefreshMinimap();
     }
 
     private void Awake()

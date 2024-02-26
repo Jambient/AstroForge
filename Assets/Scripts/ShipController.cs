@@ -28,6 +28,8 @@ public class ShipController : MonoBehaviour
     public static bool isPowerEnabled = true;
     public static Transform core;
 
+    [SerializeField] private HUDManager hudManager;
+
     public Vector2 centerOfMass { get; private set; }
     private ShipData shipData;
     private float shipMass;
@@ -159,12 +161,12 @@ public class ShipController : MonoBehaviour
     {
         float currentPowerUsage = isPowerEnabled ? Mathf.Min(requestedPowerList.Sum(powerRequest => powerRequest.isUsingPower ? powerRequest.amount : 0), totalAvailablePower) : 0;
 
-        HUDManager.instance.UpdatePowerUsageStat(currentPowerUsage / totalAvailablePower, UpdateMode.Smooth);
-        HUDManager.instance.UpdateCoreHealthStat(GetCoreHealthPercentage(), UpdateMode.Smooth);
+        hudManager.UpdatePowerUsageStat(currentPowerUsage / totalAvailablePower, UpdateMode.Smooth);
+        hudManager.UpdateCoreHealthStat(GetCoreHealthPercentage(), UpdateMode.Smooth);
 
         if (currentPowerUsage == totalAvailablePower)
         {
-            HUDManager.instance.UpdatePowerUsageStat(1, UpdateMode.Immediate);
+            hudManager.UpdatePowerUsageStat(1, UpdateMode.Immediate);
             StartCoroutine(CrashPower());
         }
     }

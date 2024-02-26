@@ -58,6 +58,7 @@ public class Projectile : MonoBehaviour
                 collision.GetComponent<IDamagable>().OnDamage(damage);
             }
 
+            isDestroying = true;
             VFXManager.instance.SpawnParticle("Spark", transform.position + transform.right * 0.3f);
             Destroy(gameObject);
         }
