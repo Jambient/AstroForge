@@ -16,6 +16,8 @@ public class BuildingUIManager : MonoBehaviour
     [SerializeField] private BuildingSystem buildingSystem;
 
     [Header("UI References")]
+    [SerializeField] private Canvas canvas;
+
     [SerializeField] private TextMeshProUGUI availableCurrencyText;
     [SerializeField] private TextMeshProUGUI launchErrorText;
     [SerializeField] private TextMeshProUGUI shipNameText;
@@ -289,8 +291,8 @@ public class BuildingUIManager : MonoBehaviour
 
         if (currentHoveredPiece != null)
         {
-            hoverInfo.anchoredPosition = (Vector2)Input.mousePosition + new Vector2(5, 5);
-            hoverInfo.pivot = new Vector2(hoverInfo.anchoredPosition.x + hoverInfo.sizeDelta.x > Screen.width ? 1 : 0, 0);
+            hoverInfo.anchoredPosition = ((Vector2)Input.mousePosition / canvas.scaleFactor) + new Vector2(5, 5);
+            hoverInfo.pivot = new Vector2(hoverInfo.anchoredPosition.x + hoverInfo.sizeDelta.x > (Screen.width / canvas.scaleFactor) ? 1 : 0, 0);
 
             TextMeshProUGUI pieceDisplayNameTitle = hoverInfo.Find("Title").GetComponentInChildren<TextMeshProUGUI>();
             if (pieceDisplayNameTitle.text != currentHoveredPiece.DisplayName)

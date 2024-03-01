@@ -9519,6 +9519,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentHoveredPiece: {fileID: 0}
   buildingSystem: {fileID: 1218828485}
+  canvas: {fileID: 2026053092}
   availableCurrencyText: {fileID: 1797749280}
   launchErrorText: {fileID: 1540174378}
   shipNameText: {fileID: 909673464}
