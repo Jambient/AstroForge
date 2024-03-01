@@ -137,6 +137,14 @@ public class HUDManager : MonoBehaviour
     {
         SceneManager.LoadScene("ShipBuilding");
     }
+
+    /// <summary>
+    /// Reloads the current scene
+    /// </summary>
+    public void ReloadScene()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+    }
     #endregion
 
     #region Private Methods

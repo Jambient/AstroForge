@@ -8,12 +8,20 @@ using UnityEngine.UI;
 
 public class PauseManager : MonoBehaviour
 {
+    #region Variables
     public static PauseManager instance { get; private set; }
+
+    [Header("Public Variables")]
     public bool isGamePaused = false;
 
+    [Header("UI References")]
     [SerializeField] private GameObject pauseMenu;
-    [SerializeField] private BuildingSystem buildingSystem;
 
+    [Header("Script References")]
+    [SerializeField] private BuildingSystem buildingSystem;
+    #endregion
+
+    #region Public Methods
     public void Resume()
     {
         isGamePaused = false;
@@ -26,13 +34,16 @@ public class PauseManager : MonoBehaviour
         isGamePaused = false;
         SaveDataIfNeeded();
         Time.timeScale = 1f;
+        GlobalsManager.currentShipID = -1;
         SceneManager.LoadScene("MainMenu");
     }
+
     public void Quit()
     {
         SaveDataIfNeeded();
         Application.Quit();
     }
+
     public void OnPause()
     {
         if (EventSystem.current.currentSelectedGameObject?.GetComponent<TMP_InputField>()) { return; }
@@ -42,7 +53,9 @@ public class PauseManager : MonoBehaviour
         Time.timeScale = 0f;
         pauseMenu.SetActive(true);
     }
+    #endregion
 
+    #region Private Methods
     private void SaveDataIfNeeded()
     {
         if (GlobalsManager.currentGameMode == GameMode.Restricted)
@@ -54,7 +67,9 @@ public class PauseManager : MonoBehaviour
             buildingSystem.SaveCurrentShipData();
         }
     }
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -66,4 +81,5 @@ public class PauseManager : MonoBehaviour
             instance = this;
         }
     }
+    #endregion
 }

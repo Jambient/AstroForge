@@ -82,14 +82,13 @@ public class BuildingSystem : MonoBehaviour
         SaveManager.instance.SaveGameData(GlobalsManager.gameData);
 
         // load the user into the correct scene based on game mode.
-        GlobalsManager.inBuildMode = false;
         if (GlobalsManager.currentGameMode == GameMode.Restricted)
         {
-            SceneManager.LoadScene("InGame");
+            SceneLoadManager.instance.LoadSceneAsync("InGame");
         }
         else
         {
-            SceneManager.LoadScene("ShipTestingZone");
+            SceneLoadManager.instance.LoadSceneAsync("ShipTestingZone");
         }
     }
 
@@ -146,9 +145,9 @@ public class BuildingSystem : MonoBehaviour
         GlobalsManager.inBuildMode = true;
         gridManager.SetActivePiece(PieceManager.instance.pieces[0]);
 
+        // if the user has previously loaded a ship in the session then load that previous ship
         if (GlobalsManager.currentShipID >= 0)
         {
-            Debug.Log("wow!");
             LoadShip(GlobalsManager.currentShipID);
         }
     }

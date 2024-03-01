@@ -143,6 +143,21 @@ public class BuildingUIManager : MonoBehaviour
         launchErrorText.gameObject.SetActive(true);
         launchErrorText.text = message;
     }
+
+    public void OnSelectMode()
+    {
+        SwitchBuildingOption(0);
+    }
+
+    public void OnBuildMode()
+    {
+        SwitchBuildingOption(1);
+    }
+
+    public void OnDeleteMode()
+    {
+        SwitchBuildingOption(2);
+    }
     #endregion
 
     #region Private Methods

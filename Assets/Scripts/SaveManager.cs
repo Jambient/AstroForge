@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,18 +6,18 @@ using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
 
 [System.Serializable]
+public class SerializableGrid
+{
+    public List<GridPosition> keys;
+    public List<GridCell> values;
+}
+
+[System.Serializable]
 public struct ShipData
 {
     public string name;
     public DateTime lastEdited;
     public SerializableGrid gridData;
-}
-
-[System.Serializable]
-public class SerializableGrid
-{
-    public List<GridPosition> keys;
-    public List<GridCell> values;
 }
 
 [System.Serializable]
@@ -36,9 +35,16 @@ public enum GameMode
 }
 public class SaveManager : MonoBehaviour
 {
+    #region Variables
     public static SaveManager instance { get; private set; }
+    #endregion
 
-    // Function to convert the dictionary to a serializable format
+    #region Public Methods
+    /// <summary>
+    /// Converts a dictionary containing grid data to the serializable grid class
+    /// </summary>
+    /// <param name="gridData">The grid data to convert</param>
+    /// <returns>The serializable grid version of the grid data</returns>
     public SerializableGrid ConvertGridToSerializable(Dictionary<GridPosition, GridCell> gridData)
     {
         SerializableGrid serializableDict = new SerializableGrid();
@@ -48,7 +54,11 @@ public class SaveManager : MonoBehaviour
         return serializableDict;
     }
 
-    // Function to convert the serializable data back to a dictionary
+    /// <summary>
+    /// Converts a serializable grid back into a dictionary.
+    /// </summary>
+    /// <param name="serializableGrid">The serializable grid</param>
+    /// <returns>The dictionary version of the grid data</returns>
     public Dictionary<GridPosition, GridCell> ConvertGridFromSerializable(SerializableGrid serializableGrid)
     {
         Dictionary<GridPosition, GridCell> gridData = new Dictionary<GridPosition, GridCell>();
@@ -60,6 +70,10 @@ public class SaveManager : MonoBehaviour
         return gridData;
     }
 
+    /// <summary>
+    /// Gets all the ship IDs relating to the current game mode.
+    /// </summary>
+    /// <returns>All Ship IDs found in the current game mode folder</returns>
     public int[] GetAllShipIDs()
     {
         string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/";
@@ -70,6 +84,11 @@ public class SaveManager : MonoBehaviour
         return Directory.GetFiles(folderPath).Select(path => int.Parse(Path.GetFileNameWithoutExtension(path))).ToArray();
     }
 
+    /// <summary>
+    /// Saves the given ship data to the file relating to the given ship ID
+    /// </summary>
+    /// <param name="shipID">The ship ID to save to</param>
+    /// <param name="shipData">The ship data to save</param>
     public void SaveShipData(int shipID, ShipData shipData)
     {
         shipData.lastEdited = DateTime.Now;
@@ -87,10 +106,14 @@ public class SaveManager : MonoBehaviour
         {
             formatter.Serialize(stream, shipData);
         }
-
-        Debug.Log("Data saved to: " + filePath);
     }
 
+    /// <summary>
+    /// Loads ship data for the given shipID
+    /// </summary>
+    /// <param name="shipID">The ID of the ship to load</param>
+    /// <param name="shipData">Stores the ship data</param>
+    /// <returns>True if the data exists, False otherwise</returns>
     public bool LoadShipData(int shipID, out ShipData shipData)
     {
         string folderPath = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/";
@@ -106,16 +129,18 @@ public class SaveManager : MonoBehaviour
                 shipData = (ShipData)formatter.Deserialize(stream);
             }
 
-            Debug.Log("Data loaded from: " + filePath);
             return true;
         }
         else
         {
-            Debug.LogError("Save file not found at: " + filePath);
             return false;
         }
     }
 
+    /// <summary>
+    /// Saves the current game data
+    /// </summary>
+    /// <param name="gameData">The game data</param>
     public void SaveGameData(GameData gameData)
     {
         BinaryFormatter formatter = new BinaryFormatter();
@@ -125,9 +150,13 @@ public class SaveManager : MonoBehaviour
         {
             formatter.Serialize(stream, gameData);
         }
-
-        Debug.Log("Game saved to: " + filePath);
     }
+
+    /// <summary>
+    /// Loads the saved game data
+    /// </summary>
+    /// <param name="gameData">A copy of the game data</param>
+    /// <returns>True if the game data was succesfully loaded, False otherwise</returns>
     public bool LoadGameData(out GameData gameData)
     {
         string filePath = $"{Application.persistentDataPath}/GameSave.dat";
@@ -142,16 +171,19 @@ public class SaveManager : MonoBehaviour
                 gameData = (GameData)formatter.Deserialize(stream);
             }
 
-            Debug.Log("Data loaded from: " + filePath);
             return true;
         }
         else
         {
-            Debug.LogError("Save file not found at: " + filePath);
             return false;
         }
     }
 
+    /// <summary>
+    /// Deletes the data for the ship with the given ID
+    /// </summary>
+    /// <param name="shipID">The ID of the ship</param>
+    /// <returns></returns>
     public bool DeleteShipData(int shipID)
     {
         string path = Application.persistentDataPath + $"/Ships/{GlobalsManager.currentGameMode}/{shipID}.dat";
@@ -159,16 +191,16 @@ public class SaveManager : MonoBehaviour
         if (File.Exists(path))
         {
             File.Delete(path);
-            Debug.Log("Data deleted at: " + path);
             return true;
         }
         else
         {
-            Debug.LogWarning("No data file found at: " + path);
             return false;
         }
     }
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Awake()
     {
         if (instance != null && instance != this)
@@ -179,4 +211,5 @@ public class SaveManager : MonoBehaviour
             instance = this;
         }
     }
+    #endregion
 }

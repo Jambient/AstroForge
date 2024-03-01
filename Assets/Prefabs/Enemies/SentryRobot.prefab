@@ -94,8 +94,8 @@ GameObject:
   m_Component:
   - component: {fileID: 8670710426343726808}
   - component: {fileID: 1278629496508237347}
-  - component: {fileID: 1355727932997353571}
   - component: {fileID: 834178332874917170}
+  - component: {fileID: 1355727932997353571}
   - component: {fileID: -5807537631891355256}
   m_Layer: 0
   m_Name: SentryRobot
@@ -172,6 +172,19 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &834178332874917170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3907931876039480126}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c01ed8f55e4271548bbda5712d423549, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  projectilePrefab: {fileID: 9129132461968332717, guid: a280b0f188b5cc8448a3b05150c3d4b4, type: 3}
 --- !u!58 &1355727932997353571
 CircleCollider2D:
   m_ObjectHideFlags: 0
@@ -207,19 +220,6 @@ CircleCollider2D:
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
   m_Radius: 0.5
---- !u!114 &834178332874917170
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3907931876039480126}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c01ed8f55e4271548bbda5712d423549, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  projectilePrefab: {fileID: 9129132461968332717, guid: a280b0f188b5cc8448a3b05150c3d4b4, type: 3}
 --- !u!50 &-5807537631891355256
 Rigidbody2D:
   serializedVersion: 4

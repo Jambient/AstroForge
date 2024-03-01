@@ -2,14 +2,19 @@ using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
+using System.Linq;
 
 public class MainMenuManager : MonoBehaviour
 {
+    #region Variables
+    [Header("Script References")]
+    [SerializeField] private KeybindsManager keybindsManager;
+
+    [Header("UI References")]
     [SerializeField] private List<GameObject> screens = new List<GameObject>();
     [SerializeField] private Image fadeFrame;
     [SerializeField] private RawImage mainMenuBackground;
@@ -18,16 +23,111 @@ public class MainMenuManager : MonoBehaviour
     [SerializeField] private List<GameObject> settingsButtons = new List<GameObject>();
     [SerializeField] private List<Sprite> settingsButtonSprites = new List<Sprite>();
     [SerializeField] private Transform settingsPages;
+    [SerializeField] private GameObject bindingModal;
+    [SerializeField] private Transform controlsSettingsContent;
 
     [SerializeField] private RectTransform progressBar;
 
-    [SerializeField] private KeybindsManager keybindsManager;
-    [SerializeField] private GameObject bindingModal;
-
     private string currentScreen = "TitleScreen";
     private int currentSettingsButtonIndex = 0;
+    #endregion
 
-    void OpenScreen(string screenName)
+    #region Public Methods
+    public void ContinueGame()
+    {
+        if (currentScreen != "MainMenuScreen") { return; }
+
+        SaveManager.instance.LoadGameData(out GlobalsManager.gameData);
+        GlobalsManager.currentGameMode = GameMode.Restricted;
+        SceneLoadManager.instance.LoadSceneAsync("ShipBuilding");
+    }
+
+    public void NewGame()
+    {
+        if (currentScreen != "MainMenuScreen") { return; }
+
+        GameData gameData = new GameData();
+        gameData.currentRound = 1;
+        gameData.credits = 300;
+        gameData.researchPoints = 0;
+
+        GlobalsManager.gameData = gameData;
+        GlobalsManager.currentGameMode = GameMode.Restricted;
+
+        SaveManager.instance.SaveGameData(gameData);
+        foreach (int shipId in SaveManager.instance.GetAllShipIDs())
+        {
+            SaveManager.instance.DeleteShipData(shipId);
+        }
+
+        SceneLoadManager.instance.LoadSceneAsync("ShipBuilding");
+    }
+
+    public void SandboxBuilder()
+    {
+        if (currentScreen != "MainMenuScreen") { return; }
+        GlobalsManager.currentGameMode = GameMode.Sandbox;
+        SceneLoadManager.instance.LoadSceneAsync("ShipBuilding");
+    }
+
+    public void Settings()
+    {
+        if (currentScreen != "MainMenuScreen") { return; }
+        StartCoroutine(FadeToScreen("SettingsScreen"));
+
+        currentSettingsButtonIndex = 0;
+        OpenSettingsTab(settingsButtons[currentSettingsButtonIndex].name);
+
+    }
+
+    public void Exit()
+    {
+        Application.Quit();
+    }
+
+    private void UpdateKeybinds()
+    {
+        //keybindsManager.playerInput.actions.FindActionMap("Game").actions.Select();
+
+        //foreach (InputAction actionReference in keybindsManager.playerInput.actions.FindActionMap("Game").actions)
+        //{
+        //    int bindingIndex = actionReference.GetBindingIndex();
+        //    string keyName = InputControlPath.ToHumanReadableString(actionReference.bindings[bindingIndex].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+
+
+
+        //    //Sprite keybindIcon = Resources.Load<Sprite>($"InputPrompts/Keyboard/White/{keyName}");
+
+        //    Debug.Log($"{actionReference.name} : {keyName}");
+        //}
+
+        var actions = keybindsManager.playerInput.actions.FindActionMap("Game").actions;
+        foreach (Transform control in controlsSettingsContent)
+        {
+            if (control.name != "TitleText")
+            {
+                int actionIndex = keybindsManager.playerInput.actions.FindActionMap("Game").actions.IndexOf((data) => data.name == control.name);
+                InputAction actionReference = actions[actionIndex];
+                int bindingIndex = actionReference.GetBindingIndex();
+                string keyName = InputControlPath.ToHumanReadableString(actionReference.bindings[bindingIndex].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
+
+                control.GetComponentsInChildren<TextMeshProUGUI>()[1].text = keyName;
+            }
+        }
+    }
+
+    public void RebindKey(string actionName)
+    {
+        bindingModal.SetActive(true);
+        StartCoroutine(keybindsManager.StartRebindingCoroutine(actionName, () => {
+            bindingModal.SetActive(false);
+            UpdateKeybinds();
+        }));
+    }
+    #endregion
+
+    #region Private Methods
+    private void OpenScreen(string screenName)
     {
         currentScreen = "";
 
@@ -39,7 +139,7 @@ public class MainMenuManager : MonoBehaviour
         currentScreen = screenName;
     }
 
-    IEnumerator FadeToScreen(string screenName)
+    private IEnumerator FadeToScreen(string screenName)
     {
         currentScreen = "";
 
@@ -50,29 +150,7 @@ public class MainMenuManager : MonoBehaviour
         fadeFrame.gameObject.SetActive(false);
     }
 
-    IEnumerator LoadSceneAsync(string sceneName)
-    {
-        yield return FadeToScreen("LoadingScreen");
-
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync(sceneName);
-        asyncLoad.allowSceneActivation = false;
-
-        // Wait until the asynchronous scene fully loads
-        while (!asyncLoad.isDone)
-        {
-            //yield return progressBar.Find("InnerBar").GetComponent<RectTransform>().DOSizeDelta(new Vector2(asyncLoad.progress * progressBar.rect.width, 10), 1).WaitForCompletion();
-            yield return null;
-            if (asyncLoad.progress >= 0.9f)
-            {
-                fadeFrame.gameObject.SetActive(true);
-                yield return fadeFrame.DOFade(1, 0.3f).WaitForCompletion();
-
-                asyncLoad.allowSceneActivation = true;
-            }
-        }
-    }
-
-    void OpenSettingsTab(string buttonName)
+    private void OpenSettingsTab(string buttonName)
     {
         foreach (GameObject button in settingsButtons)
         {
@@ -108,7 +186,9 @@ public class MainMenuManager : MonoBehaviour
             page.gameObject.SetActive(page.name == buttonName);
         }
     }
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Start()
     {
         foreach (GameObject button in settingsButtons)
@@ -125,6 +205,8 @@ public class MainMenuManager : MonoBehaviour
             continueGameButton.GetComponent<Button>().interactable = true;
             continueGameButton.GetComponentInChildren<TextMeshProUGUI>().color = new Color(113f / 255f, 113f / 255f, 113f / 255f);
         }
+
+        UpdateKeybinds();
     }
 
     private void Update()
@@ -174,76 +256,5 @@ public class MainMenuManager : MonoBehaviour
             }
         }
     }
-
-    // Main Menu Button Functions
-    public void ContinueGame()
-    {
-        if (currentScreen != "MainMenuScreen") { return; }
-
-        SaveManager.instance.LoadGameData(out GlobalsManager.gameData);
-        GlobalsManager.currentGameMode = GameMode.Restricted;
-        StartCoroutine(LoadSceneAsync("ShipBuilding"));
-    }
-
-    public void NewGame()
-    {
-        if (currentScreen != "MainMenuScreen") { return; }
-
-        GameData gameData = new GameData();
-        gameData.currentRound = 1;
-        gameData.credits = 1000;
-        gameData.researchPoints = 0;
-
-        GlobalsManager.gameData = gameData;
-        GlobalsManager.currentGameMode = GameMode.Restricted;
-
-        SaveManager.instance.SaveGameData(gameData);
-        foreach (int shipId in SaveManager.instance.GetAllShipIDs())
-        {
-            SaveManager.instance.DeleteShipData(shipId);
-        }
-
-        StartCoroutine(LoadSceneAsync("ShipBuilding"));
-    }
-    public void SandboxBuilder()
-    {
-        if (currentScreen != "MainMenuScreen") { return; }
-        GlobalsManager.currentGameMode = GameMode.Sandbox;
-        StartCoroutine(LoadSceneAsync("ShipBuilding"));
-    }
-    public void Settings()
-    {
-        if (currentScreen != "MainMenuScreen") { return; }
-        StartCoroutine(FadeToScreen("SettingsScreen"));
-
-        currentSettingsButtonIndex = 0;
-        OpenSettingsTab(settingsButtons[currentSettingsButtonIndex].name);
-
-    }
-    public void Exit()
-    {
-        Application.Quit();
-    }
-
-    private void UpdateKeybinds()
-    {
-        foreach (InputAction actionReference in keybindsManager.playerInput.actions.FindActionMap("Game").actions)
-        {
-            int bindingIndex = actionReference.GetBindingIndex();
-            string keyName = InputControlPath.ToHumanReadableString(actionReference.bindings[bindingIndex].effectivePath, InputControlPath.HumanReadableStringOptions.OmitDevice);
-
-            //Sprite keybindIcon = Resources.Load<Sprite>($"InputPrompts/Keyboard/White/{keyName}");
-
-            Debug.Log($"{actionReference.name} : {keyName}");
-        }
-    }
-
-    public void RebindKey(string actionName)
-    {
-        bindingModal.SetActive(true);
-        StartCoroutine(keybindsManager.StartRebindingCoroutine(actionName, () => {
-            bindingModal.SetActive(false);
-            UpdateKeybinds();
-        }));
-    }
+    #endregion
 }

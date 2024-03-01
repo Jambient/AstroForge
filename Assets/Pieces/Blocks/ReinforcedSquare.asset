@@ -17,7 +17,7 @@ MonoBehaviour:
   PreviewImage: {fileID: 21300000, guid: 4d85f93360bda6c498a30aba2fe6a74b, type: 3}
   Category: 0
   Prefab: {fileID: 7660878814427203623, guid: 42d877054e2b9e14cb2eb18c2dfb07c9, type: 3}
-  Health: 200
-  Cost: 30
+  Health: 150
+  Cost: 100
   Mass: 20
   OnlyAllowOne: 0

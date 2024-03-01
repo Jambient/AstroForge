@@ -10,7 +10,7 @@ public class ThrusterBase : PieceBase
     protected override void InGameStart()
     {
         thrustParticle = GetComponentInChildren<ParticleSystem>();
-        powerRequest = shipController.RequestPowerUsage(20);
+        powerRequest = shipController.RequestPower(20);
     }
 
     protected override void InGameFixedUpdate()
@@ -37,6 +37,14 @@ public class ThrusterBase : PieceBase
             {
                 thrustParticle.Stop();
             }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (powerRequest != null)
+        {
+            shipController.StopUsingPower(powerRequest);
         }
     }
 }

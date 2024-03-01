@@ -19,5 +19,5 @@ MonoBehaviour:
   Prefab: {fileID: 7660878814427203623, guid: 6074ad1069100684386eafc14885bf1f, type: 3}
   Health: 100
   Cost: 50
-  Mass: 10
+  Mass: 20
   OnlyAllowOne: 1

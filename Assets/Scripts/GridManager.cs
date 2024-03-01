@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 [System.Serializable]
@@ -60,6 +61,10 @@ public class GridManager : MonoBehaviour
     public bool showPieceVisualisation = true;
     [SerializeField] private Vector2 _gridSize;
 
+    [Header("UI References")]
+    [SerializeField] private Canvas canvas;
+    [SerializeField] private RectTransform gridBorder;
+
     [Header("References")]
     [SerializeField] private GameObject visualisationSprite;
     [SerializeField] private GameObject currentRender;
@@ -82,19 +87,29 @@ public class GridManager : MonoBehaviour
         visualisationSprite.GetComponent<SpriteRenderer>().sprite = newPiece.PreviewImage;
         visualisationSprite.transform.rotation = Quaternion.identity;
 
+        // destroy previous red zones
         foreach (Transform child in visualisationSprite.transform)
         {
             Destroy(child.gameObject);
         }
+
+        // add red zone visualistions onto visualisation sprite
+        List<RestrictedPosition> restrictedPositions = PieceManager.instance.GetRestrictedPositionsFromPiece(activePiece);
+        int sizeX = restrictedPositions.Max((data) => data.restrictionType == RestrictionType.Piece ? data.relativePosition.x : 0);
+        int sizeY = restrictedPositions.Max((data) => data.restrictionType == RestrictionType.Piece ? data.relativePosition.y : 0);
+        Vector2 sizeOffset = new Vector2(sizeX * 0.25f, sizeY * 0.25f);
+
         foreach (RestrictedPosition restrictionPos in PieceManager.instance.GetRestrictedPositionsFromPiece(activePiece))
         {
             if (restrictionPos.restrictionType == RestrictionType.RedZone)
             {
                 Vector2 zonePosition = restrictionPos.relativePosition.ToVector2();
+                Vector2 offsetPosition = new Vector2(zonePosition.x * -0.5f + sizeOffset.x, zonePosition.y * -0.5f + sizeOffset.y);
 
                 GameObject redZone = Instantiate(redZonePrefab);
+                redZone.GetComponent<SpriteRenderer>().color = new Color(1, 1, 1, 0.4f);
                 redZone.transform.parent = visualisationSprite.transform;
-                redZone.transform.localPosition = new Vector2(((zonePosition.x - 0.5f) / 2), -((zonePosition.y - 0.5f) / 2));
+                redZone.transform.localPosition = offsetPosition;
                 redZone.transform.localScale = Vector3.one;
             }
         }
@@ -227,13 +242,17 @@ public class GridManager : MonoBehaviour
         if (boxCollider.OverlapPoint(mousePosition))
         {
             float cellSize = 0.5f * transform.localScale.x;
+
             List<RestrictedPosition> restrictedPositions = PieceManager.instance.GetRestrictedPositionsFromPiece(activePiece);
             int sizeX = restrictedPositions.Max((data) => data.restrictionType == RestrictionType.Piece ? data.relativePosition.x : 0);
             int sizeY = restrictedPositions.Max((data) => data.restrictionType == RestrictionType.Piece ? data.relativePosition.y : 0);
 
+            Vector2 sizeOffset = new Vector2(sizeX * cellSize / 2, sizeY * cellSize / 2);
+            sizeOffset = RotateAroundOrigin(sizeOffset, (visualisationSprite.transform.rotation.eulerAngles.z) * Mathf.Deg2Rad);
+
             visualisationSprite.transform.position = new Vector3(
-                Mathf.Floor((mousePosition.x + cellSize / 2) / cellSize) * cellSize - sizeX * cellSize/2, 
-                Mathf.Floor((mousePosition.y + cellSize / 2) / cellSize) * cellSize - sizeY * cellSize/2, 
+                Mathf.Floor((mousePosition.x + cellSize / 2) / cellSize) * cellSize - sizeOffset.x, 
+                Mathf.Floor((mousePosition.y + cellSize / 2) / cellSize) * cellSize - sizeOffset.y,
                 0
             );
             visualisationSprite.GetComponent<SpriteRenderer>().color = IsActivePiecePlacementValid() ? validPlacementColor : invalidPlacementColor;
@@ -351,10 +370,11 @@ public class GridManager : MonoBehaviour
         Vector3 max = spriteRenderer.bounds.max;
         Vector3 screenMin = cam.WorldToScreenPoint(min);
         Vector3 screenMax = cam.WorldToScreenPoint(max);
-        float screenWidth = screenMax.x - screenMin.x;
-        float screenHeight = screenMax.y - screenMin.y;
+        float gridScreenWidth = screenMax.x - screenMin.x;
+        float gridScreenHeight = screenMax.y - screenMin.y;
+        float newGridSize = (gridBorder.sizeDelta.x * canvas.scaleFactor) - 50;
 
-        transform.localScale = new Vector3(650 / screenWidth, 650 / screenHeight, 1);
+        transform.localScale = new Vector3(newGridSize / gridScreenWidth, newGridSize / gridScreenHeight, 1);
     }
     #endregion
 

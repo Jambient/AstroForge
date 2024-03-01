@@ -12,10 +12,8 @@ public class KeybindsManager : MonoBehaviour
     private RebindingOperation rebindingOperation;
     private const string RebindsKey = "rebinds";
 
-    private void Start()
+    private void Awake()
     {
-        playerInput = GetComponent<PlayerInput>();
-
         string rebinds = PlayerPrefs.GetString(RebindsKey, string.Empty);
 
         if (string.IsNullOrEmpty(rebinds)) { return; }
@@ -56,7 +54,7 @@ public class KeybindsManager : MonoBehaviour
 
     private void RebindComplete()
     {
-        Debug.Log("completed rebinding");
+        Save();
         rebindingOperation.Dispose();
     }
 }

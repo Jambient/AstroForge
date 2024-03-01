@@ -10,6 +10,8 @@ public enum DestroyMode
 
 public class Projectile : MonoBehaviour
 {
+    #region Variables
+    [Header("Public Variables")]
     public float damage;
     public float speed;
     public DestroyMode destroyMode;
@@ -19,13 +21,17 @@ public class Projectile : MonoBehaviour
     private bool isDestroying;
     private float elapsedTime;
     private float maxLifetime = 10;
+    #endregion
 
+    #region Private Methods
     private IEnumerator DestroyAfterGivenSeconds(int seconds)
     {
         yield return new WaitForSeconds(seconds);
         Destroy(gameObject);
     }
+    #endregion
 
+    #region MonoBehaviour Messages
     private void Update()
     {
         transform.position += transform.right * speed * Time.deltaTime;
@@ -42,7 +48,7 @@ public class Projectile : MonoBehaviour
 
     private void OnBecameInvisible()
     {
-        if (destroyMode == DestroyMode.OnInvisible && !isDestroying)
+        if (gameObject.activeSelf && destroyMode == DestroyMode.OnInvisible && !isDestroying)
         {
             isDestroying = true;
             StartCoroutine(DestroyAfterGivenSeconds(1));
@@ -63,4 +69,5 @@ public class Projectile : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    #endregion
 }

@@ -18,6 +18,6 @@ MonoBehaviour:
   Category: 0
   Prefab: {fileID: 7660878814427203623, guid: 820aecb72204bfb45b011afc52e26195, type: 3}
   Health: 100
-  Cost: 10
+  Cost: 30
   Mass: 10
   OnlyAllowOne: 0

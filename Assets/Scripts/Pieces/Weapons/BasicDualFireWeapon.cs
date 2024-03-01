@@ -25,7 +25,7 @@ public class BasicDualFireWeapon : PieceBase
     {
         barrels = transform.Find("Barrels");
         weaponData = (Weapon)pieceData;
-        powerRequest = shipController.RequestPowerUsage(weaponData.EnergyUsage);
+        powerRequest = shipController.RequestPower(weaponData.EnergyUsage);
         overHeatIncrease = 1 / weaponData.ContinuousShotsTillCooldown;
     }
 
